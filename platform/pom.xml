@@ -23,6 +23,10 @@
   <name>SDET Automation :: Platform</name>
   <description>Layer parent for shared, framework-agnostic platform libraries.</description>
 
+  <modules>
+    <module>test-core</module>
+  </modules>
+
   <build>
     <plugins>
       <plugin>
@@ -61,4 +65,45 @@
       </plugin>
     </plugins>
   </build>
+
+  <profiles>
+    <profile>
+      <!-- R18: jacoco:check skips (and passes) when no tests ran, because there is no
+           execution data. A platform module that has production code must therefore also
+           have a test source directory. Activation is evaluated per module, so modules
+           without src/main/java (such as this layer parent) are not affected. -->
+      <id>require-tests-for-production-code</id>
+      <activation>
+        <file>
+          <exists>${basedir}/src/main/java</exists>
+        </file>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-enforcer-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>require-test-sources</id>
+                <goals>
+                  <goal>enforce</goal>
+                </goals>
+                <configuration>
+                  <rules>
+                    <requireFilesExist>
+                      <files>
+                        <file>${project.basedir}/src/test/java</file>
+                      </files>
+                      <message>Platform modules with production code must have tests in src/test/java: without them the coverage gate (decision D3) is silently skipped (PHASE-1-PLAN.md, R18).</message>
+                    </requireFilesExist>
+                  </rules>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 </project>
