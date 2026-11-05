@@ -67,6 +67,7 @@ final class ConfigLoader {
   }
 
   TestConfig load() {
+    rejectSecretSystemProperties();
     Optional<String> selected = selectedEnvironment();
     String environment = selected.orElse(DEFAULT_ENVIRONMENT);
     if (!ENVIRONMENT_NAME.matcher(environment).matches()) {
@@ -105,6 +106,27 @@ final class ConfigLoader {
         environmentVariables,
         systemProperties,
         List.of(environmentResource, DEFAULT_RESOURCE));
+  }
+
+  /**
+   * Fails if any secret is supplied as a system property. The message names each property and the
+   * environment variable to use instead, never the value.
+   */
+  private void rejectSecretSystemProperties() {
+    List<String> rejected =
+        systemProperties.keySet().stream()
+            .filter(name -> name.startsWith(TestConfig.SECRET_PREFIX))
+            .sorted()
+            .map(name -> "-D" + name + " (use " + TestConfig.environmentVariableName(name) + ")")
+            .toList();
+    if (!rejected.isEmpty()) {
+      throw new ConfigException(
+          "Secrets must not be supplied as system properties, because they are visible in process"
+              + " listings and are copied into test reports. Supply them as environment variables"
+              + " instead: "
+              + String.join(", ", rejected)
+              + ".");
+    }
   }
 
   private Optional<String> selectedEnvironment() {
@@ -179,8 +201,6 @@ final class ConfigLoader {
                   + " is a secret and must not be stored in a file. Supply it via environment"
                   + " variable "
                   + TestConfig.environmentVariableName(key)
-                  + " or system property -D"
-                  + key
                   + ".");
         }
         if (out.putIfAbsent(key, value.asText()) != null) {

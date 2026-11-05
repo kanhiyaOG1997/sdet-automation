@@ -28,8 +28,11 @@ import java.util.regex.Pattern;
  *   <li>classpath resource {@code config/default.yml}
  * </ol>
  *
- * <p>Keys in the {@code secret.} namespace can only come from system properties or environment
- * variables, and can only be read through {@link #requireSecret(String)}.
+ * <p>Keys in the {@code secret.} namespace are different: they can only come from environment
+ * variables (for example {@code secret.admin-password} from {@code SECRET_ADMIN_PASSWORD}) and can
+ * only be read through {@link #requireSecret(String)}. They are rejected in YAML files and as
+ * system properties, because system properties are visible in process listings, end up in shell
+ * history and are copied into Surefire XML reports.
  */
 public final class TestConfig {
 
@@ -210,11 +213,12 @@ public final class TestConfig {
   }
 
   /**
-   * Returns a required secret from a system property or environment variable.
+   * Returns a required secret from its environment variable.
    *
-   * @param key a key in the {@code secret.} namespace, such as {@code secret.admin-password}
+   * @param key a key in the {@code secret.} namespace, such as {@code secret.admin-password}, read
+   *     from {@code SECRET_ADMIN_PASSWORD}
    * @return the secret, masked when printed
-   * @throws ConfigException if neither source defines the secret
+   * @throws ConfigException if the environment variable is not set
    * @throws IllegalArgumentException if {@code key} is not in the {@code secret.} namespace
    */
   public Secret requireSecret(String key) {
@@ -223,18 +227,13 @@ public final class TestConfig {
       throw new IllegalArgumentException(
           "Secret keys must start with '" + SECRET_PREFIX + "', but got '" + key + "'");
     }
-    String value = systemProperties.get(key);
-    if (value == null) {
-      value = environmentVariables.get(environmentVariableName(key));
-    }
+    String value = environmentVariables.get(environmentVariableName(key));
     if (value == null) {
       throw new ConfigException(
           "Missing required secret '"
               + key
               + "'. Supply it via environment variable "
               + environmentVariableName(key)
-              + " or system property -D"
-              + key
               + ".");
     }
     return new Secret(value);
@@ -257,19 +256,13 @@ public final class TestConfig {
 
   /**
    * Returns the values of every secret supplied to this run, so they can be masked wherever they
-   * might appear in logs or reports. Covers system properties named {@code secret.*} and
-   * environment variables named {@code SECRET_*}.
+   * might appear in logs or reports. These are the non-empty environment variables named {@code
+   * SECRET_*}, the only supported source of secrets.
    *
    * @return an unmodifiable set of non-empty secret values
    */
   public Set<String> secretValues() {
     Set<String> values = new HashSet<>();
-    systemProperties.forEach(
-        (name, value) -> {
-          if (name.startsWith(SECRET_PREFIX) && !value.isEmpty()) {
-            values.add(value);
-          }
-        });
     environmentVariables.forEach(
         (name, value) -> {
           if (name.startsWith(SECRET_ENV_PREFIX) && !value.isEmpty()) {

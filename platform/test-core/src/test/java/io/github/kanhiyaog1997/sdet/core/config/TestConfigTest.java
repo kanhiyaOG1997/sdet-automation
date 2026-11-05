@@ -211,7 +211,7 @@ public class TestConfigTest {
         .isInstanceOf(ConfigException.class)
         .hasMessageContaining("'secret.admin-password' in classpath:config/default.yml")
         .hasMessageContaining("environment variable SECRET_ADMIN_PASSWORD")
-        .hasMessageContaining("-Dsecret.admin-password")
+        .hasMessageNotContaining("-D")
         .hasMessageNotContaining("hunter2");
   }
 
@@ -225,21 +225,57 @@ public class TestConfigTest {
   }
 
   @Test
-  public void secretsComeFromSystemPropertiesBeforeEnvironmentVariables() {
-    TestConfig fromEnv = load(Map.of("SECRET_TOKEN", "env-token"), Map.of());
-    TestConfig fromBoth =
-        load(Map.of("SECRET_TOKEN", "env-token"), Map.of("secret.token", "prop-token"));
+  public void secretsAreLoadedFromEnvironmentVariables() {
+    TestConfig config =
+        load(Map.of("SECRET_TOKEN", "env-token", "SECRET_ADMIN_PASSWORD", "env-pw"), Map.of());
 
-    assertThat(fromEnv.requireSecret("secret.token").reveal()).isEqualTo("env-token");
-    assertThat(fromBoth.requireSecret("secret.token").reveal()).isEqualTo("prop-token");
+    assertThat(config.requireSecret("secret.token").reveal()).isEqualTo("env-token");
+    assertThat(config.requireSecret("secret.admin-password").reveal()).isEqualTo("env-pw");
   }
 
   @Test
-  public void missingSecretMessageNamesBothSourcesButNoValue() {
+  public void missingSecretMessageNamesOnlyTheEnvironmentVariable() {
     assertThatThrownBy(() -> load(Map.of(), Map.of()).requireSecret("secret.api-key"))
         .isInstanceOf(ConfigException.class)
-        .hasMessageContaining("environment variable SECRET_API_KEY")
-        .hasMessageContaining("system property -Dsecret.api-key");
+        .hasMessage(
+            "Missing required secret 'secret.api-key'. Supply it via environment variable"
+                + " SECRET_API_KEY.");
+  }
+
+  @Test
+  public void secretSystemPropertiesAreRejectedWithoutEchoingTheirValues() {
+    Map<String, String> properties =
+        Map.of("secret.admin-password", "SYSPROP-SECRET-VALUE-1", "secret.token", "SYSPROP-2");
+
+    Throwable thrown = catchThrowable(() -> load(Map.of(), properties));
+
+    assertThat(thrown)
+        .isInstanceOf(ConfigException.class)
+        .hasNoCause()
+        .hasMessageContaining("must not be supplied as system properties")
+        .hasMessageContaining("-Dsecret.admin-password (use SECRET_ADMIN_PASSWORD)")
+        .hasMessageContaining("-Dsecret.token (use SECRET_TOKEN)")
+        .hasMessageNotContaining("SYSPROP-SECRET-VALUE-1")
+        .hasMessageNotContaining("SYSPROP-2");
+    StringWriter stackTrace = new StringWriter();
+    thrown.printStackTrace(new PrintWriter(stackTrace));
+    assertThat(stackTrace.toString()).doesNotContain("SYSPROP-SECRET-VALUE-1", "SYSPROP-2");
+  }
+
+  @Test
+  public void secretSystemPropertiesAreRejectedEvenWhenTheEnvironmentVariableIsAlsoSet() {
+    assertThatThrownBy(() -> load(Map.of("SECRET_TOKEN", "env"), Map.of("secret.token", "sysprop")))
+        .isInstanceOf(ConfigException.class)
+        .hasMessageContaining("-Dsecret.token (use SECRET_TOKEN)");
+  }
+
+  @Test
+  public void onlyTheSecretNamespaceIsRejectedAsSystemProperties() {
+    TestConfig config =
+        load(Map.of(), Map.of("secretary.name", "Alice", "app.secret-mode", "strict"));
+
+    assertThat(config.require("secretary.name")).isEqualTo("Alice");
+    assertThat(config.require("app.secret-mode")).isEqualTo("strict");
   }
 
   @Test
@@ -263,13 +299,18 @@ public class TestConfigTest {
   }
 
   @Test
-  public void secretValuesCoverSecretSystemPropertiesAndEnvironmentVariablesOnly() {
+  public void secretValuesContainOnlyNonEmptySecretEnvironmentVariables() {
     TestConfig config =
         load(
-            Map.of("SECRET_A", "from-env", "SECRET_EMPTY", "", "PATH", "/usr/bin"),
-            Map.of("secret.b", "from-prop", "user.name", "someone"));
+            Map.of(
+                "SECRET_A", "from-env-a",
+                "SECRET_B", "from-env-b",
+                "SECRET_EMPTY", "",
+                "PATH", "/usr/bin",
+                "MY_SECRET_X", "not-a-secret-variable"),
+            Map.of("user.name", "someone", "app.secret-mode", "strict"));
 
-    assertThat(config.secretValues()).containsExactlyInAnyOrder("from-env", "from-prop");
+    assertThat(config.secretValues()).containsExactlyInAnyOrder("from-env-a", "from-env-b");
   }
 
   // ---- report information and immutability ----
@@ -278,8 +319,7 @@ public class TestConfigTest {
   public void nonSecretEntriesAreSortedEffectiveValuesWithoutSecrets() {
     yaml("default.yml", "zeta: 1\nalpha: file\n");
 
-    TestConfig config =
-        load(Map.of("ALPHA", "override", "SECRET_TOKEN", "t"), Map.of("secret.other", "o"));
+    TestConfig config = load(Map.of("ALPHA", "override", "SECRET_TOKEN", "t"), Map.of());
 
     assertThat(config.nonSecretEntries())
         .containsExactly(Map.entry("alpha", "override"), Map.entry("zeta", "1"));
