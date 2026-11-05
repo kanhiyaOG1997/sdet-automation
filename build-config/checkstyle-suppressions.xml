@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suppressions PUBLIC
+    "-//Checkstyle//DTD SuppressionFilter Configuration 1.2//EN"
+    "https://checkstyle.org/dtds/suppressions_1_2.dtd">
+<!--
+  Layout checks owned by google-java-format (Spotless), suppressed so formatting has exactly one
+  authority (ADR-0006). Validated against Checkstyle 14.3.0's bundled google_checks.xml: every
+  check below fires on unformatted code and never on formatter output (PHASE-1-PLAN.md §6.2).
+
+  Only layout checks belong here. Naming, Javadoc-content and coding rules stay active.
+  Patterns match the fully qualified check class name and are anchored on "\." and "Check$",
+  so each entry matches exactly one check.
+-->
+<suppressions>
+  <!-- Whitespace -->
+  <suppress checks="\.(FileTabCharacter|WhitespaceAfter|WhitespaceAround|WhitespaceBeforeEmptyBody|ArrayBracketNoWhitespace|SingleSpaceSeparator|GenericWhitespace|NoWhitespaceBefore|NoWhitespaceBeforeCaseDefaultColon|MethodParamPad|ParenPad)Check$" files="."/>
+  <!-- Trailing whitespace: only this RegexpSingleline instance, selected by its id -->
+  <suppress id="noTrailingWhitespace" files="."/>
+
+  <!-- Line length and wrapping -->
+  <suppress checks="\.(LineLength|NoLineWrap|OperatorWrap|SeparatorWrap)Check$" files="."/>
+
+  <!-- Braces -->
+  <suppress checks="\.(LeftCurly|GoogleRightCurly)Check$" files="."/>
+
+  <!-- Indentation and vertical spacing -->
+  <suppress checks="\.(Indentation|CommentsIndentation|EmptyLineSeparator|TextBlockGoogleStyleFormatting)Check$" files="."/>
+
+  <!-- Declaration layout -->
+  <suppress checks="\.(ModifierOrder|AnnotationLocation|OneStatementPerLine)Check$" files="."/>
+
+  <!-- Imports -->
+  <suppress checks="\.CustomImportOrderCheck$" files="."/>
+
+  <!-- Javadoc layout (Javadoc content checks stay active) -->
+  <suppress checks="\.(JavadocMissingLeadingAsterisk|JavadocLeadingAsteriskAlign|JavadocContentLocation|JavadocParagraph|JavadocTagContinuationIndentation|RequireEmptyLineBeforeBlockTagGroup|SingleLineJavadoc)Check$" files="."/>
+</suppressions>
