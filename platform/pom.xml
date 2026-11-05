@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Layer parent for shared platform libraries (ADR-0002, PHASE-1-PLAN.md §3.3).
+
+  Holds rules that apply only to platform production code. The JaCoCo coverage
+  thresholds (decision D3) are added here in Task 3; modules are added in Tasks 4 and 5.
+  No versions are declared here: they all come from the root POM.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>io.github.kanhiyaog1997.sdet</groupId>
+    <artifactId>sdet-automation-parent</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>platform-parent</artifactId>
+  <packaging>pom</packaging>
+
+  <name>SDET Automation :: Platform</name>
+  <description>Layer parent for shared, framework-agnostic platform libraries.</description>
+</project>
