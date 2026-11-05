@@ -1,0 +1,25 @@
+# Normalize line endings: LF in the repository and working tree on every OS.
+* text=auto eol=lf
+
+# Windows scripts must keep CRLF.
+*.cmd text eol=crlf
+*.bat text eol=crlf
+
+# Shell scripts (including the Maven Wrapper) stay LF.
+mvnw text eol=lf
+*.sh text eol=lf
+
+# JMeter plans are XML; diff them as text.
+*.jtl text eol=lf diff
+*.har text eol=lf diff
+
+# Binary assets.
+*.png binary
+*.jpg binary
+*.gif binary
+*.ico binary
+*.jar binary
+*.apk binary
+*.ipa binary
+*.zip binary
+*.har binary
