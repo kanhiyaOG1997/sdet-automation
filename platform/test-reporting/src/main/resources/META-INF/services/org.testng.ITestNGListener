@@ -1,0 +1,6 @@
+# Registered with TestNG through ServiceLoader. allure-testng registers its own listener
+# (io.qameta.allure.testng.AllureTestNg) in its jar; it is deliberately not repeated here.
+# AllureLifecycleInstaller must stay first: it must run before TestNG constructs AllureTestNg.
+io.github.kanhiyaog1997.sdet.reporting.AllureLifecycleInstaller
+io.github.kanhiyaog1997.sdet.reporting.AllureEnvironmentListener
+io.github.kanhiyaog1997.sdet.reporting.TestLoggingListener

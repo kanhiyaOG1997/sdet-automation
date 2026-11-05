@@ -1,0 +1,8 @@
+# Non-secret fixture configuration for this module's tests.
+report:
+  project: sdet-automation
+  owner: qa-team
+# A non-secret key whose value equals the fake secret supplied by Surefire. It must still be
+# masked in environment information (second line of defence).
+fixture:
+  mirrored-value: TASK5-SECRET-12345

@@ -108,6 +108,13 @@
         <scope>import</scope>
       </dependency>
 
+      <!-- This reactor's own modules, so consumers never declare their versions -->
+      <dependency>
+        <groupId>io.github.kanhiyaog1997.sdet</groupId>
+        <artifactId>test-core</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+
       <!-- Single-artifact libraries -->
       <dependency>
         <groupId>org.testng</groupId>
@@ -293,7 +300,42 @@
                 <!-- Needed on Maven 3.9.x, which only warns about duplicate dependency
                      declarations; Maven 3.10+ already rejects them (PHASE-1-PLAN.md §4.5). -->
                 <banDuplicatePomDependencyVersions/>
-                <banDynamicVersions/>
+                <banDynamicVersions>
+                  <!-- Exact allowlist of this reactor's own modules, which are SNAPSHOTs during
+                       development and depend on each other. Each new internal module that others
+                       depend on must be added explicitly. Every other SNAPSHOT, LATEST, RELEASE
+                       and range stays banned, including other artifacts in the same group.
+                       Known limitation: an ignored artifact is skipped entirely, whatever its
+                       version, so a range such as [0.1.0-SNAPSHOT,) on one of these two modules
+                       is accepted by this rule. Writing the ignore as
+                       groupId:artifactId:${project.version} does not help, because the range
+                       resolves to that same version. Ranges are kept out by the rule below
+                       instead: modules cannot declare a version for these artifacts at all, and
+                       the root dependencyManagement gives them exactly ${project.version}. -->
+                  <ignores>
+                    <ignore>io.github.kanhiyaog1997.sdet:test-core</ignore>
+                    <ignore>io.github.kanhiyaog1997.sdet:test-reporting</ignore>
+                  </ignores>
+                </banDynamicVersions>
+                <!-- Child POMs never declare dependency versions (CLAUDE.md): every version,
+                     including this reactor's own modules, comes from the root
+                     dependencyManagement. Reads each module's own pom.xml as written, so
+                     inherited and managed versions are not counted. Covers <dependencies>,
+                     <dependencyManagement>, profiles and plugin dependencies; XML comments are
+                     ignored. A text match rather than an XML parser: Beanshell calls methods
+                     reflectively on the runtime class, which JDK 21 blocks for the JDK's internal
+                     XML parser implementation. -->
+                <evaluateBeanshell>
+                  <condition><![CDATA[
+                    pom = new java.io.File(new java.io.File(new java.net.URI("${project.baseUri}")), "pom.xml");
+                    xml = new String(java.nio.file.Files.readAllBytes(pom.toPath()), "UTF-8")
+                        .replaceAll("(?s)<!--.*?-->", "");
+                    "${project.artifactId}".equals("sdet-automation-parent")
+                        || !java.util.regex.Pattern.compile("(?s)<dependency>(?:(?!</dependency>).)*<version>")
+                            .matcher(xml).find();
+                  ]]></condition>
+                  <message>${project.artifactId}/pom.xml declares a dependency version. Child POMs must not declare versions: manage every dependency, including this reactor's own modules, in the root pom.xml dependencyManagement.</message>
+                </evaluateBeanshell>
               </rules>
             </configuration>
           </execution>

@@ -1,0 +1,2 @@
+# Masks sensitive data in Allure results immediately before they are written.
+io.github.kanhiyaog1997.sdet.reporting.AllureResultMasker
