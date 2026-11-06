@@ -4,9 +4,12 @@
   2026-11-07: Tasks 1–8 are completed. Phase 1 was merged to `main` through PR #2 (merge commit
   `e0976ab`); the ruleset `Protect main` requires the `Build and verify` check; O3 Scenario A was
   validated on PR #3, which was closed without merging; Scenario B was not executed and is an
-  accepted residual risk (R14, R22). **Phase 1 is not yet formally closed:** closure is pending the
-  merge of the closeout documentation PR and a final verification. Every remaining step,
-  including each commit, push and pull request, needs its own explicit approval (§15)
+  accepted residual risk (R14, R22). **Closed 2026-11-07.** Closeout PR #4 was merged into `main`
+  at merge commit `9822d152dadd50b212b1ae3acc514381dd834cf4`. The push-to-main GitHub Actions run
+  `42301855181` completed successfully. A fresh `./mvnw -B -ntp clean verify` against the exact
+  `origin/main` tree passed: 117 tests, zero failures, errors or skips; Spotless, Checkstyle,
+  SpotBugs and all configured JaCoCo thresholds passed (§19). Every further step, including each
+  commit, push and pull request, needs its own explicit approval (§15)
 - **Date:** 2026-11-06 (versions and SHAs verified 2026-11-05; re-checked against the 2026-11-06
   cutoff — no selection changes; action SHAs re-verified 2026-11-06 in Task 6)
 - **Branch:** `feature/phase-1-build-backbone`, created in Task 1 from `origin/main` at `cdebdd1`
@@ -38,6 +41,7 @@ need a new decision are listed as open items in §18.
 | Status update (2026-11-07) | Tasks 6, 7, 7a and 7b recorded as completed and committed, with their commits (§3.1, §11.2, §12, §13.4, §14, §15, §18, §19); Task 8 not started |
 | Follow-up | O4 and O5 scheduled as separate Tasks 7a and 7b, after the Task 7 and Task 6 commits and before Task 8, in that order (7b only after 7a is completed and reviewed), each needing its own approval (§15, §18); neither is executed in Task 7 |
 | Closeout update (2026-11-07) | Task 8 results recorded: local validation and O6 evidence (§8.6, §10); PR #2 merge and its process deviation (§15); required check `Build and verify` set through the ruleset `Protect main` (§11.3); O3 Scenario A results and Scenario B accepted as residual risk (§11.4, §16, R14, R22, O3); first Dependabot run (§11.5); definition-of-done status (§19). The rows above are kept as history. No technical decision, version or scope changes |
+| Final closure (2026-11-07) | Phase 1 formally closed after closeout PR #4 (merge commit `9822d15`), green push-to-main run `42301855181` and a fresh verification of the exact `origin/main` tree (header, §19). No technical decision, version or scope changes |
 
 ### Revision 3 changes
 
@@ -1245,6 +1249,15 @@ follow-up tasks are now done (status on 2026-11-07).
 | ADRs 0007–0009 and module READMEs; links resolve | Done (Task 7a; `test-reporting` README in Task 5) |
 | PR merged; required check set | Done: PR #2 merged (`e0976ab`), with the process deviation recorded in §15 (merged before CI completed); `Protect main` requires `Build and verify` (§11.3) |
 
-**Phase 1 closure:** every criterion above is met or has an accepted residual risk. Phase 1 is
-not yet formally closed: closure is pending the merge of the closeout documentation PR and a
-final verification.
+**Phase 1 closure:** every criterion above is met or has an accepted residual risk.
+**Closed 2026-11-07.** Closeout
+[PR #4](https://github.com/kanhiyaOG1997/sdet-automation/pull/4) was merged into `main` at merge
+commit `9822d152dadd50b212b1ae3acc514381dd834cf4`. The push-to-main GitHub Actions run
+[`42301855181`](https://github.com/kanhiyaOG1997/sdet-automation/actions/runs/42301855181)
+completed successfully, with the required check `Build and verify` passing. A fresh
+`./mvnw -B -ntp clean verify` against a disposable archive of the exact `origin/main` tree at
+`9822d15` passed: 117 tests, zero failures, errors or skips; Spotless passed; Checkstyle
+0 violations; SpotBugs 0 findings; all configured JaCoCo thresholds passed (`test-core` 98.3%
+lines / 92.5% branches, `test-reporting` 96.1% / 95.3%). The ruleset `Protect main` remains
+active and requires `Build and verify`. O3 Scenario B remains an accepted residual risk (R14,
+R22).
