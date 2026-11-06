@@ -1,0 +1,36 @@
+# Dependency updates (PHASE-1-PLAN.md §11.5). Weekly, grouped, and never for a release younger
+# than 14 days, which automates the release-age policy in §4.2.
+version: 2
+updates:
+  # Root POM: dependencyManagement and pluginManagement hold every version, as properties.
+  - package-ecosystem: maven
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 14
+    groups:
+      build-plugins:
+        patterns:
+          - "org.apache.maven.plugins:*"
+          - "com.diffplug.spotless:*"
+          - "com.puppycrawl.tools:*"
+          - "com.github.spotbugs:*"
+          - "org.jacoco:*"
+      test-libraries:
+        patterns:
+          - "org.testng:*"
+          - "org.assertj:*"
+          - "io.qameta.allure:*"
+
+  # Workflow actions are pinned by full commit SHA with a version comment; Dependabot updates both.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 14
+    groups:
+      github-actions:
+        patterns:
+          - "*"
