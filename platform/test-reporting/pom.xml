@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Allure reporting for TestNG suites, with mandatory masking of sensitive data
+  (docs/plans/phase-1.md §8). No versions here: every version comes from the root POM.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>io.github.kanhiyaog1997.sdet</groupId>
+    <artifactId>platform-parent</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>test-reporting</artifactId>
+
+  <name>SDET Automation :: Platform :: Test Reporting</name>
+  <description>Allure integration for TestNG with sensitive-data masking for attachments, logs and environment information.</description>
+
+  <dependencies>
+    <!-- Configuration and the set of secret values to mask -->
+    <dependency>
+      <groupId>io.github.kanhiyaog1997.sdet</groupId>
+      <artifactId>test-core</artifactId>
+    </dependency>
+    <!-- Allure's TestNG adapter; registers itself through META-INF/services -->
+    <dependency>
+      <groupId>io.qameta.allure</groupId>
+      <artifactId>allure-testng</artifactId>
+    </dependency>
+    <!-- Allure API used directly: attachments and results-directory resolution -->
+    <dependency>
+      <groupId>io.qameta.allure</groupId>
+      <artifactId>allure-java-commons</artifactId>
+    </dependency>
+    <!-- Listener interfaces. allure-testng declares no TestNG dependency, so it must be explicit -->
+    <dependency>
+      <groupId>org.testng</groupId>
+      <artifactId>testng</artifactId>
+    </dependency>
+    <!-- Pretty-printing of JSON attachments -->
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.assertj</groupId>
+      <artifactId>assertj-core</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <!-- Test scope: the backend, and its ListAppender for capturing log output in tests -->
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-classic</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <!-- Deterministic FAKE secret (not a credential) so the tests can prove, end to end
+               through TestConfig.current(), that configured secrets never reach logs,
+               attachments or environment information. Supplied as an environment variable, not a
+               system property: Surefire copies every system property into its XML reports. -->
+          <environmentVariables>
+            <SECRET_TASK5_FIXTURE>TASK5-SECRET-12345</SECRET_TASK5_FIXTURE>
+          </environmentVariables>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>

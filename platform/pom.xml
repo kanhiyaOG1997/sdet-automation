@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Layer parent for shared platform libraries (ADR-0002, docs/plans/phase-1.md §3.3).
+
+  Holds rules that apply only to platform production code. The JaCoCo coverage
+  thresholds (decision D3) are added here in Task 3; modules are added in Tasks 4 and 5.
+  No versions are declared here: they all come from the root POM.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>io.github.kanhiyaog1997.sdet</groupId>
+    <artifactId>sdet-automation-parent</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>platform-parent</artifactId>
+  <packaging>pom</packaging>
+
+  <name>SDET Automation :: Platform</name>
+  <description>Layer parent for shared, framework-agnostic platform libraries.</description>
+
+  <modules>
+    <module>test-core</module>
+    <module>test-reporting</module>
+  </modules>
+
+  <build>
+    <plugins>
+      <plugin>
+        <!-- Coverage gate for platform production code only (decision D3). The agent and
+             report come from the root POM; this layer adds the thresholds. -->
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>jacoco-coverage-check</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>check</goal>
+            </goals>
+            <configuration>
+              <rules>
+                <rule>
+                  <element>BUNDLE</element>
+                  <limits>
+                    <limit>
+                      <counter>LINE</counter>
+                      <value>COVEREDRATIO</value>
+                      <minimum>0.80</minimum>
+                    </limit>
+                    <limit>
+                      <counter>BRANCH</counter>
+                      <value>COVEREDRATIO</value>
+                      <minimum>0.70</minimum>
+                    </limit>
+                  </limits>
+                </rule>
+              </rules>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+  <profiles>
+    <profile>
+      <!-- R18: jacoco:check skips (and passes) when no tests ran, because there is no
+           execution data. A platform module that has production code must therefore also
+           have a test source directory. Activation is evaluated per module, so modules
+           without src/main/java (such as this layer parent) are not affected. -->
+      <id>require-tests-for-production-code</id>
+      <activation>
+        <file>
+          <exists>${basedir}/src/main/java</exists>
+        </file>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-enforcer-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>require-test-sources</id>
+                <goals>
+                  <goal>enforce</goal>
+                </goals>
+                <configuration>
+                  <rules>
+                    <requireFilesExist>
+                      <files>
+                        <file>${project.basedir}/src/test/java</file>
+                      </files>
+                      <message>Platform modules with production code must have tests in src/test/java: without them the coverage gate (decision D3) is silently skipped (docs/plans/phase-1.md, R18).</message>
+                    </requireFilesExist>
+                  </rules>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+</project>

@@ -1,0 +1,409 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Root parent and aggregator for the sdet-automation reactor (ADR-0002).
+
+  Single source of truth for dependency and plugin versions. This POM declares
+  <dependencyManagement> but no <dependencies>: modules declare only what they use,
+  and this file decides which version they get.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>io.github.kanhiyaog1997.sdet</groupId>
+  <artifactId>sdet-automation-parent</artifactId>
+  <version>0.1.0-SNAPSHOT</version>
+  <packaging>pom</packaging>
+
+  <name>SDET Automation</name>
+  <description>Production-grade Java automation frameworks and SDET engineering practices.</description>
+  <url>https://github.com/kanhiyaOG1997/sdet-automation</url>
+
+  <licenses>
+    <license>
+      <name>MIT License</name>
+      <url>https://opensource.org/licenses/MIT</url>
+    </license>
+  </licenses>
+
+  <scm>
+    <url>https://github.com/kanhiyaOG1997/sdet-automation</url>
+    <connection>scm:git:https://github.com/kanhiyaOG1997/sdet-automation.git</connection>
+  </scm>
+
+  <modules>
+    <module>platform</module>
+  </modules>
+
+  <properties>
+    <!-- Build settings -->
+    <maven.compiler.release>21</maven.compiler.release>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    <!-- Reproducible builds: identical sources produce byte-identical artifacts. -->
+    <project.build.outputTimestamp>2026-11-06T00:00:00Z</project.build.outputTimestamp>
+    <!-- Populated by the JaCoCo agent (Task 3); Surefire reads it via @{argLine}. -->
+    <argLine/>
+
+    <!-- Dependency versions (14-day release-age policy, docs/plans/phase-1.md §4.2) -->
+    <testng.version>7.12.0</testng.version>
+    <assertj.version>3.27.7</assertj.version>
+    <slf4j.version>2.0.20</slf4j.version>
+    <logback.version>1.6.5</logback.version>
+    <jackson.version>2.22.4</jackson.version>
+    <allure.version>3.0.0</allure.version>
+
+    <!-- Plugin versions -->
+    <maven-enforcer-plugin.version>3.6.3</maven-enforcer-plugin.version>
+    <maven-compiler-plugin.version>3.16.0</maven-compiler-plugin.version>
+    <maven-surefire-plugin.version>3.6.1</maven-surefire-plugin.version>
+    <maven-failsafe-plugin.version>3.6.1</maven-failsafe-plugin.version>
+    <maven-resources-plugin.version>3.5.0</maven-resources-plugin.version>
+    <maven-jar-plugin.version>3.5.1</maven-jar-plugin.version>
+    <maven-clean-plugin.version>3.5.0</maven-clean-plugin.version>
+    <maven-install-plugin.version>3.2.0</maven-install-plugin.version>
+    <maven-deploy-plugin.version>3.2.0</maven-deploy-plugin.version>
+    <maven-site-plugin.version>3.22.0</maven-site-plugin.version>
+
+    <!-- Quality-gate versions (ADR-0006; docs/plans/phase-1.md §4.4 and §6) -->
+    <spotless-maven-plugin.version>3.10.4</spotless-maven-plugin.version>
+    <google-java-format.version>1.36.1</google-java-format.version>
+    <maven-checkstyle-plugin.version>3.6.0</maven-checkstyle-plugin.version>
+    <checkstyle.version>14.3.0</checkstyle.version>
+    <spotbugs-maven-plugin.version>4.10.5.0</spotbugs-maven-plugin.version>
+    <spotbugs.version>4.10.5</spotbugs.version>
+    <jacoco-maven-plugin.version>0.8.15</jacoco-maven-plugin.version>
+  </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <!-- BOMs keep multi-artifact libraries aligned -->
+      <dependency>
+        <groupId>com.fasterxml.jackson</groupId>
+        <artifactId>jackson-bom</artifactId>
+        <version>${jackson.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-bom</artifactId>
+        <version>${slf4j.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.assertj</groupId>
+        <artifactId>assertj-bom</artifactId>
+        <version>${assertj.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+      <dependency>
+        <groupId>io.qameta.allure</groupId>
+        <artifactId>allure-bom</artifactId>
+        <version>${allure.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+
+      <!-- This reactor's own modules, so consumers never declare their versions -->
+      <dependency>
+        <groupId>io.github.kanhiyaog1997.sdet</groupId>
+        <artifactId>test-core</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+
+      <!-- Single-artifact libraries -->
+      <dependency>
+        <groupId>org.testng</groupId>
+        <artifactId>testng</artifactId>
+        <version>${testng.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>ch.qos.logback</groupId>
+        <artifactId>logback-classic</artifactId>
+        <version>${logback.version}</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-enforcer-plugin</artifactId>
+          <version>${maven-enforcer-plugin.version}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <version>${maven-compiler-plugin.version}</version>
+          <configuration>
+            <parameters>true</parameters>
+            <failOnWarning>true</failOnWarning>
+            <compilerArgs>
+              <arg>-Xlint:all,-processing</arg>
+            </compilerArgs>
+          </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-surefire-plugin</artifactId>
+          <version>${maven-surefire-plugin.version}</version>
+          <configuration>
+            <argLine>@{argLine}</argLine>
+            <trimStackTrace>false</trimStackTrace>
+            <systemPropertyVariables>
+              <!-- Allure defaults to a path relative to the working directory, outside
+                   target/ (docs/plans/phase-1.md §8.6). An absolute path keeps results where
+                   `clean` removes them. -->
+              <allure.results.directory>${project.build.directory}/allure-results</allure.results.directory>
+            </systemPropertyVariables>
+          </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-failsafe-plugin</artifactId>
+          <version>${maven-failsafe-plugin.version}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-resources-plugin</artifactId>
+          <version>${maven-resources-plugin.version}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-jar-plugin</artifactId>
+          <version>${maven-jar-plugin.version}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-clean-plugin</artifactId>
+          <version>${maven-clean-plugin.version}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-install-plugin</artifactId>
+          <version>${maven-install-plugin.version}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-deploy-plugin</artifactId>
+          <version>${maven-deploy-plugin.version}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-site-plugin</artifactId>
+          <version>${maven-site-plugin.version}</version>
+        </plugin>
+
+        <!-- Quality gates: one responsibility per tool (ADR-0006, docs/plans/phase-1.md §6) -->
+        <plugin>
+          <!-- Sole owner of Java formatting. Fix locally with: ./mvnw spotless:apply -->
+          <groupId>com.diffplug.spotless</groupId>
+          <artifactId>spotless-maven-plugin</artifactId>
+          <version>${spotless-maven-plugin.version}</version>
+          <configuration>
+            <java>
+              <googleJavaFormat>
+                <version>${google-java-format.version}</version>
+                <style>GOOGLE</style>
+                <!-- Required: without reflow the formatter leaves long strings and text
+                     blocks that Checkstyle rejects (docs/plans/phase-1.md §6.3). -->
+                <reflowLongStrings>true</reflowLongStrings>
+                <formatJavadoc>true</formatJavadoc>
+              </googleJavaFormat>
+            </java>
+          </configuration>
+        </plugin>
+        <plugin>
+          <!-- Non-formatting style rules: bundled Google config, unmodified, plus a
+               suppression file for the layout checks Spotless already owns. -->
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-checkstyle-plugin</artifactId>
+          <version>${maven-checkstyle-plugin.version}</version>
+          <dependencies>
+            <dependency>
+              <groupId>com.puppycrawl.tools</groupId>
+              <artifactId>checkstyle</artifactId>
+              <version>${checkstyle.version}</version>
+            </dependency>
+          </dependencies>
+          <configuration>
+            <configLocation>google_checks.xml</configLocation>
+            <suppressionsLocation>${maven.multiModuleProjectDirectory}/build-config/checkstyle-suppressions.xml</suppressionsLocation>
+            <suppressionsFileExpression>org.checkstyle.google.suppressionfilter.config</suppressionsFileExpression>
+            <includeTestSourceDirectory>true</includeTestSourceDirectory>
+            <includeResources>false</includeResources>
+            <includeTestResources>false</includeTestResources>
+            <consoleOutput>true</consoleOutput>
+            <failOnViolation>true</failOnViolation>
+            <!-- google_checks.xml reports at "warning"; fail on warnings, not only errors. -->
+            <violationSeverity>warning</violationSeverity>
+          </configuration>
+        </plugin>
+        <plugin>
+          <!-- Static bug-pattern analysis of compiled production code. -->
+          <groupId>com.github.spotbugs</groupId>
+          <artifactId>spotbugs-maven-plugin</artifactId>
+          <version>${spotbugs-maven-plugin.version}</version>
+          <dependencies>
+            <dependency>
+              <groupId>com.github.spotbugs</groupId>
+              <artifactId>spotbugs</artifactId>
+              <version>${spotbugs.version}</version>
+            </dependency>
+          </dependencies>
+          <configuration>
+            <effort>Max</effort>
+            <threshold>Medium</threshold>
+            <includeTests>false</includeTests>
+            <xmlOutput>true</xmlOutput>
+          </configuration>
+        </plugin>
+        <plugin>
+          <!-- Coverage measurement. Thresholds live only in layer parents (platform/pom.xml). -->
+          <groupId>org.jacoco</groupId>
+          <artifactId>jacoco-maven-plugin</artifactId>
+          <version>${jacoco-maven-plugin.version}</version>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>enforce-build-environment</id>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+            <configuration>
+              <rules>
+                <requireJavaVersion>
+                  <version>[21,22)</version>
+                  <message>This project builds only on JDK 21 (docs/plans/phase-1.md, decision D2).</message>
+                </requireJavaVersion>
+                <requireMavenVersion>
+                  <version>[3.9.0,)</version>
+                  <message>Use the Maven Wrapper: ./mvnw</message>
+                </requireMavenVersion>
+                <requirePluginVersions>
+                  <message>Every plugin must have a pinned version in the root POM.</message>
+                </requirePluginVersions>
+                <dependencyConvergence/>
+                <!-- Needed on Maven 3.9.x, which only warns about duplicate dependency
+                     declarations; Maven 3.10+ already rejects them (docs/plans/phase-1.md §4.5). -->
+                <banDuplicatePomDependencyVersions/>
+                <banDynamicVersions>
+                  <!-- Exact allowlist of this reactor's own modules, which are SNAPSHOTs during
+                       development and depend on each other. Each new internal module that others
+                       depend on must be added explicitly. Every other SNAPSHOT, LATEST, RELEASE
+                       and range stays banned, including other artifacts in the same group.
+                       Known limitation: an ignored artifact is skipped entirely, whatever its
+                       version, so a range such as [0.1.0-SNAPSHOT,) on one of these two modules
+                       is accepted by this rule. Writing the ignore as
+                       groupId:artifactId:${project.version} does not help, because the range
+                       resolves to that same version. Ranges are kept out by the rule below
+                       instead: modules cannot declare a version for these artifacts at all, and
+                       the root dependencyManagement gives them exactly ${project.version}. -->
+                  <ignores>
+                    <ignore>io.github.kanhiyaog1997.sdet:test-core</ignore>
+                    <ignore>io.github.kanhiyaog1997.sdet:test-reporting</ignore>
+                  </ignores>
+                </banDynamicVersions>
+                <!-- Child POMs never declare dependency versions (CLAUDE.md): every version,
+                     including this reactor's own modules, comes from the root
+                     dependencyManagement. Reads each module's own pom.xml as written, so
+                     inherited and managed versions are not counted. Covers <dependencies>,
+                     <dependencyManagement>, profiles and plugin dependencies; XML comments are
+                     ignored. A text match rather than an XML parser: Beanshell calls methods
+                     reflectively on the runtime class, which JDK 21 blocks for the JDK's internal
+                     XML parser implementation. -->
+                <evaluateBeanshell>
+                  <condition><![CDATA[
+                    pom = new java.io.File(new java.io.File(new java.net.URI("${project.baseUri}")), "pom.xml");
+                    xml = new String(java.nio.file.Files.readAllBytes(pom.toPath()), "UTF-8")
+                        .replaceAll("(?s)<!--.*?-->", "");
+                    "${project.artifactId}".equals("sdet-automation-parent")
+                        || !java.util.regex.Pattern.compile("(?s)<dependency>(?:(?!</dependency>).)*<version>")
+                            .matcher(xml).find();
+                  ]]></condition>
+                  <message>${project.artifactId}/pom.xml declares a dependency version. Child POMs must not declare versions: manage every dependency, including this reactor's own modules, in the root pom.xml dependencyManagement.</message>
+                </evaluateBeanshell>
+              </rules>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- Quality gates, all bound to `verify` (docs/plans/phase-1.md §4.6). Declaration order is
+           execution order within the phase: Spotless, Checkstyle, SpotBugs, JaCoCo. -->
+      <plugin>
+        <groupId>com.diffplug.spotless</groupId>
+        <artifactId>spotless-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>spotless-check</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>checkstyle-check</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>com.github.spotbugs</groupId>
+        <artifactId>spotbugs-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>spotbugs-check</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <!-- Sets ${argLine} to the JaCoCo agent before tests run. -->
+            <id>jacoco-prepare-agent</id>
+            <goals>
+              <goal>prepare-agent</goal>
+            </goals>
+          </execution>
+          <execution>
+            <!-- HTML, XML and CSV coverage reports in target/site/jacoco. -->
+            <id>jacoco-report</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>report</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>
