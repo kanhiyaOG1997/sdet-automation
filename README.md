@@ -626,7 +626,9 @@ Security is a core engineering requirement.
 - Use GitHub Actions Secrets for CI/CD credentials, mapped through the workflow's `env:` block,
   never on the Maven command line.
 - Keep `.env` files out of Git.
-- Maintain `.env.example` with placeholders only.
+- Add `.env.example` when the first local secret configuration is needed. It contains
+  placeholder values only, never real secrets. Real secrets stay outside version control and
+  are supplied as `SECRET_*` environment variables.
 - Never commit private SSH keys or certificates.
 
 ### Test data protection

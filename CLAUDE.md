@@ -41,7 +41,9 @@ module directories contain only READMEs.
   platform module with `src/main/java` must have `src/test/java` (R18). Write behavioural
   tests, not coverage padding.
 - No credentials, tokens or real hostnames in code or config. Read secrets from environment
-  variables; document them in `.env.example`.
+  variables. Add `.env.example` when the first local secret configuration is needed; it
+  contains placeholder values only, never real secrets. Real secrets stay outside version
+  control and are supplied as `SECRET_*` environment variables.
 - Secrets come only from `SECRET_*` environment variables, read through
   `TestConfig.requireSecret` (ADR-0008). Never put `secret.*` keys in YAML, never pass
   `-Dsecret.*` (Surefire XML records it; treat such a secret as exposed), and in CI map secrets

@@ -1,9 +1,9 @@
 # Phase 1 Implementation Plan — Build Backbone
 
-- **Status:** Revision 4 — reconciled with the implementation; **in review again, not
-  approved**. Tasks 1–5 committed; Task 6 implemented and validated, not committed; follow-up
-  Tasks 7a (O4) and 7b (O5) scheduled, not started; Task 8 not started. Every remaining step,
-  including each commit, needs its own explicit approval (§15)
+- **Status:** Revision 4 — reconciled with the implementation and approved. Status updated
+  2026-11-07: Tasks 1–7b are completed and committed on `feature/phase-1-build-backbone`; nothing
+  has been pushed. Task 8 has not started and awaits explicit approval. Every remaining step,
+  including each commit, push and pull request, needs its own explicit approval (§15)
 - **Date:** 2026-11-06 (versions and SHAs verified 2026-11-05; re-checked against the 2026-11-06
   cutoff — no selection changes; action SHAs re-verified 2026-11-06 in Task 6)
 - **Branch:** `feature/phase-1-build-backbone`, created in Task 1 from `origin/main` at `cdebdd1`
@@ -32,6 +32,7 @@ need a new decision are listed as open items in §18.
 | CI and Dependabot | Implemented content, Task 6 validation results, main-branch concurrency wording corrected, Dependabot coverage limits (§11) |
 | Risks | R1 corrected: google-java-format is not expected to be updated by Dependabot (not yet confirmed) and is maintained manually; R13 validated; R22 added (§17) |
 | Status | Task status and actual commits (§15); open items O4–O6 (§18); status against the definition of done (§19) |
+| Status update (2026-11-07) | Tasks 6, 7, 7a and 7b recorded as completed and committed, with their commits (§3.1, §11.2, §12, §13.4, §14, §15, §18, §19); Task 8 not started |
 | Follow-up | O4 and O5 scheduled as separate Tasks 7a and 7b, after the Task 7 and Task 6 commits and before Task 8, in that order (7b only after 7a is completed and reviewed), each needing its own approval (§15, §18); neither is executed in Task 7 |
 
 ### Revision 3 changes
@@ -122,9 +123,8 @@ are numbered here only so this plan can refer to them.
 
 ### 3.1 Directory layout after Phase 1
 
-Status markers reflect the repository on 2026-11-06: **done** (committed), **Task 6**
-(implemented and validated, not yet committed), **pending** (not yet written; scheduled in
-Task 7a, see O4 in §18).
+Status markers reflect the repository on 2026-11-07: **done** (committed). Every file listed
+is committed; the task that added it is named where it is not one of Tasks 1–5.
 
 ```
 sdet-automation/
@@ -135,7 +135,7 @@ sdet-automation/
 │   ├── pom.xml                               # done — platform layer parent (coverage gate, R18 guard)
 │   ├── test-core/
 │   │   ├── pom.xml                           # done
-│   │   ├── README.md                         # pending
+│   │   ├── README.md                         # done (Task 7a)
 │   │   └── src/
 │   │       ├── main/java/io/github/kanhiyaog1997/sdet/core/config/…        # done
 │   │       ├── test/java/io/github/kanhiyaog1997/sdet/core/config/…        # done
@@ -152,18 +152,18 @@ sdet-automation/
 │           ├── test/java/io/github/kanhiyaog1997/sdet/reporting/…          # done
 │           └── test/resources/{config/default.yml,logback-test.xml}         # done
 ├── .github/
-│   ├── workflows/ci.yml                      # Task 6
-│   └── dependabot.yml                        # Task 6
+│   ├── workflows/ci.yml                      # done (Task 6)
+│   └── dependabot.yml                        # done (Task 6)
 └── docs/
-    ├── plans/phase-1.md                      # this plan (Task 7)
+    ├── plans/phase-1.md                      # done — this plan (Task 7)
     └── adr/
-        ├── 0007-build-and-quality-gates.md       # pending
-        ├── 0008-test-configuration-and-secrets.md # pending
-        └── 0009-reporting-allure-and-masking.md  # pending
+        ├── 0007-build-and-quality-gates.md       # done (Task 7a)
+        ├── 0008-test-configuration-and-secrets.md # done (Task 7a)
+        └── 0009-reporting-allure-and-masking.md  # done (Task 7a)
 ```
 
-`build-config/` is a new top-level directory; the README repository structure is to be updated
-to include it (§12, pending).
+`build-config/` is a new top-level directory; the README repository structure was updated to
+include it in Task 7a (§12).
 
 ### 3.2 POM hierarchy
 
@@ -555,8 +555,8 @@ Implemented in Task 4 (30 tests in `TestConfigTest` after the Task 5 change).
 | # | Finding | Resolution |
 |---|---|---|
 | S1 | An invalid-YAML error could echo file content, including a secret, through the parser's message or cause | **Fixed in Task 4:** the message reports only the resource and the line/column; no cause is attached; a missing location is handled. Regression-tested |
-| S2 | Secret protection depends on naming: a credential under a non-`secret.*` key (for example `db.password`) or an environment variable such as `AWS_SECRET_ACCESS_KEY` is plain configuration and is not in `secretValues()` | By design. Documented in the `test-reporting` README (security limitations); to be documented in the `test-core` README and ADR-0008 (pending, O4) |
-| S3 | `Secret.reveal()` inside an assertion prints the value when the assertion fails | Usage guidance: never use `reveal()` for logging, reporting or assertion messages. Documented in the `test-reporting` README; `test-core` README and ADR-0008 pending (O4) |
+| S2 | Secret protection depends on naming: a credential under a non-`secret.*` key (for example `db.password`) or an environment variable such as `AWS_SECRET_ACCESS_KEY` is plain configuration and is not in `secretValues()` | By design. Documented in the `test-reporting` README (security limitations), the `test-core` README and ADR-0008 (Task 7a) |
+| S3 | `Secret.reveal()` inside an assertion prints the value when the assertion fails | Usage guidance: never use `reveal()` for logging, reporting or assertion messages. Documented in the `test-reporting` README, the `test-core` README and ADR-0008 (Task 7a) |
 | S4 | Very short secret values would over-mask ordinary text | **Implemented in Task 5:** value-based masking ignores secrets shorter than four characters; key-based masking still applies (§8.3) |
 
 ---
@@ -750,8 +750,8 @@ actions run on node24, and every input used exists at the pinned SHA. `setup-jav
 
 ### 11.2 `.github/workflows/ci.yml` (implemented in Task 6)
 
-The implemented file (Task 6, not yet committed) is byte-for-byte identical to this block
-(checked by script in Task 6 and again in Task 7).
+The committed file (Task 6, `8064973`) is byte-for-byte identical to this block (checked by
+script in Task 6 and again in Task 7).
 
 ```yaml
 name: CI
@@ -916,23 +916,22 @@ reported as evidence.
 
 ## 12. Documentation deliverables
 
-Status on 2026-11-06. Everything marked **pending** is outside the Task 7 scope. It is scheduled
-as Task 7a (O4, §18): after the Task 7 and Task 6 commits, before Task 8, and only with separate
-explicit approval (§15).
+Status on 2026-11-07. The deliverables that were outside the Task 7 scope were delivered in
+Task 7a (O4, §18), committed as `c83768f` after the Task 7 and Task 6 commits (§15).
 
 | File | Content | Status |
 |---|---|---|
-| `docs/adr/0007-build-and-quality-gates.md` | Layer parents, enforcer rules (including the D10 allowlist and child-POM version rule), version-age policy, gate binding, Checkstyle suppression method and evidence, `reflowLongStrings`, the `MultilineCommentLeadingAsteriskPresence` clarification, manual google-java-format maintenance (R1) | Pending |
-| `docs/adr/0008-test-configuration-and-secrets.md` | Layer precedence, key mapping, environment-only secrets (D7), `current()` vs explicit injection, S2–S4 (§7.8) | Pending |
-| `docs/adr/0009-reporting-allure-and-masking.md` | Allure 3.0.0 selection and evidence, no AspectJ, results directory and its verification, mask-by-default attachments, write-time masking (D8, D9), `allure-maven` 3.1.0 for Phase 2 | Pending |
-| `platform/test-core/README.md` | Purpose, configuration keys, usage, how to run; S2 and S3 guidance; the R18 limitation | Pending (required by `CLAUDE.md`: every major module has a README) |
+| `docs/adr/0007-build-and-quality-gates.md` | Layer parents, enforcer rules (including the D10 allowlist and child-POM version rule), version-age policy, gate binding, Checkstyle suppression method and evidence, `reflowLongStrings`, the `MultilineCommentLeadingAsteriskPresence` clarification, manual google-java-format maintenance (R1) | **Done** (Task 7a) |
+| `docs/adr/0008-test-configuration-and-secrets.md` | Layer precedence, key mapping, environment-only secrets (D7), `current()` vs explicit injection, S2–S4 (§7.8) | **Done** (Task 7a) |
+| `docs/adr/0009-reporting-allure-and-masking.md` | Allure 3.0.0 selection and evidence, no AspectJ, results directory and its verification, mask-by-default attachments, write-time masking (D8, D9), `allure-maven` 3.1.0 for Phase 2 | **Done** (Task 7a) |
+| `platform/test-core/README.md` | Purpose, configuration keys, usage, how to run; S2 and S3 guidance; the R18 limitation | **Done** (Task 7a; required by `CLAUDE.md`: every major module has a README) |
 | `platform/test-reporting/README.md` | Purpose, listener behaviour, attachments, masking rules, results location, `clean verify` guidance, how to run | **Done in Task 5** (includes secret-supply rules, write-time masking and security limitations) |
-| `platform/README.md` | Module status updated | Pending |
-| `README.md` | Repository structure gains `build-config/` and `docs/plans/`; real build commands; ADR table gains 0007–0009 | Pending |
-| `docs/adr/README.md` | Index gains 0007–0009 | Pending |
-| `CLAUDE.md` | Real build and quality commands | Pending |
-| `.gitattributes` | Approved HAR change (D5, §13.4) | Pending |
-| `docs/plans/phase-1.md` | This plan, relocated and reconciled | **Task 7** (in review) |
+| `platform/README.md` | Module status updated | **Done** (Task 7a) |
+| `README.md` | Repository structure gains `build-config/` and `docs/plans/`; real build commands; ADR table gains 0007–0009 | **Done** (Task 7a) |
+| `docs/adr/README.md` | Index gains 0007–0009 | **Done** (Task 7a) |
+| `CLAUDE.md` | Real build and quality commands | **Done** (Task 7a) |
+| `.gitattributes` | Approved HAR change (D5, §13.4) | **Done** (Task 7a; see the §13.4 status note) |
+| `docs/plans/phase-1.md` | This plan, relocated and reconciled | **Done** (Task 7, `9868919`; old-path references updated in Task 7b, `3306dc1`) |
 
 ---
 
@@ -990,8 +989,10 @@ Lines 12–14 become:
 
 Line 25 (`*.har binary`) is removed. No other line changes.
 
-**Status:** not yet applied. On 2026-11-06 `.gitattributes` still contains the original
-lines 12–14 and line 25 (`*.har binary`); scheduled in Task 7a (O4).
+**Status:** applied in Task 7a (`c83768f`). Line 25 (`*.har binary`) was removed. At the user's
+review request, the original comment on line 12 (`# JMeter plans are XML; diff them as text.`)
+was kept unchanged instead of the replacement comment above; the `*.jtl` and `*.har` rules on
+lines 13–14 were already as approved. `git check-attr` matches the expected result below.
 
 **Expected result** (`git check-attr text eol diff merge binary -- sample.har`):
 `text: set`, `eol: lf`, `diff: set`, `merge: unspecified`, `binary: unspecified`.
@@ -1016,8 +1017,8 @@ automated check is evaluated in Phase 4, when HAR fixtures are first introduced.
 | ADR-0005 — Docker-compatible configuration | Not exercised in Phase 1 (no containers) |
 | ADR-0006 — one tool per responsibility; Checkstyle non-formatting only | Consistent; one justified clarification (`MultilineCommentLeadingAsteriskPresence`), recorded in ADR-0007 |
 | ADR-0006 — coverage "on library modules (`platform`, `frameworks`)" | ADR-0006 unchanged. Phase 1 applies D3 to `platform` production code; `frameworks` thresholds deferred to Phase 2 (D6) |
-| README repository structure | To be updated to add `build-config/` and `docs/plans/` (§12, pending — O4) |
-| `CLAUDE.md` rules (versions only in root POM, branch model, no credentials, no `Thread.sleep`) | Consistent. "Child POMs never declare versions" is now enforced by the build (D10). Command updates pending (§12, O4) |
+| README repository structure | Updated to add `build-config/` and `docs/plans/` (§12, Task 7a) |
+| `CLAUDE.md` rules (versions only in root POM, branch model, no credentials, no `Thread.sleep`) | Consistent. "Child POMs never declare versions" is now enforced by the build (D10). Commands updated in Task 7a (§12) |
 | `CLAUDE.md` — "Read secrets from environment variables" | Consistent; enforced in code by D7 |
 
 ---
@@ -1035,7 +1036,7 @@ automated check is evaluated in Phase 4, when HAR fixtures are first introduced.
 | 7 | ADRs 0007–0009, module READMEs, README, ADR index, `CLAUDE.md`, `.gitattributes` per §13.4 | All links resolve; `git check-attr` matches §13.4 | `docs: add Phase 1 ADRs and module documentation` |
 | 8 | Full positive and negative validation; push and open PR; CI behavioural validation (§11.4) | Green CI on the PR; scenario truth table confirmed with run links | — |
 
-**Status on 2026-11-06** (the table above is the approved plan and is kept unchanged):
+**Status on 2026-11-07** (the table above is the approved plan and is kept unchanged):
 
 | # | Status | Commit(s) on `feature/phase-1-build-backbone` |
 |---|---|---|
@@ -1044,11 +1045,11 @@ automated check is evaluated in Phase 4, when HAR fixtures are first introduced.
 | 3 | Done; committed under an approved, different message | `ff24d8a` build: enforce formatting, static analysis and coverage gates |
 | 4 | Done | `5725b93` feat(core): add layered test configuration and secrets |
 | 5 | Done, as two commits: the D7 breaking change to Task 4 behaviour was committed separately, as approved | `d9691cb` fix(core)!: accept secrets only from SECRET_ environment variables; `12d82e8` feat(reporting): add Allure integration and sensitive-data masking |
-| 6 | Implemented and validated; **not committed**. The commit needs separate explicit approval (step 3 below) | Proposed: `ci: add GitHub Actions build and Dependabot` |
-| 7 | **Redefined for this revision** as "finalize and relocate the Phase 1 plan"; **in review again, not approved**, not committed. The original Task 7 deliverables above are not done; they moved to Task 7a (O4) | — |
-| 7a | **Scheduled, not started** (O4) — the original Task 7 documentation deliverables. Starts only after the Task 7 and Task 6 commits and separate explicit approval (step 4 below); complete only after its review (step 5) | Proposed: `docs: add Phase 1 ADRs and module documentation` |
-| 7b | **Scheduled, not started** (O5) — update the 16 references to the old plan path. Starts only after Task 7a is completed and reviewed and separate explicit approval (step 6 below); complete only after its review (step 7) | Proposed: none yet; to be proposed with the task |
-| 8 | **Not started.** Starts only after Tasks 7a and 7b are completed and reviewed and separate explicit approval (step 8 below) | — |
+| 6 | Done | `8064973` ci: add GitHub Actions build and Dependabot |
+| 7 | Done. **Redefined for this revision** as "finalize and relocate the Phase 1 plan"; the original Task 7 deliverables above moved to Task 7a (O4) | `9868919` docs(plans): add Phase 1 implementation plan |
+| 7a | Done (O4) — the original Task 7 documentation deliverables; committed under an approved, different message | `c83768f` docs: add Phase 1 architecture and usage documentation |
+| 7b | Done (O5) — the 16 references to the old plan path updated | `3306dc1` docs: update Phase 1 plan references |
+| 8 | **Not started; awaiting explicit approval** (step 8 below). Its prerequisites below are met | — |
 
 Task 5's exit criterion "Allure directory and `clean` checks pass (§8.6)" is partly evidenced:
 see the §8.6 status note and O6.
@@ -1067,6 +1068,9 @@ pull request or merge unless that approval says so explicitly.
 | 6 | Execute Task 7b (O5) | Separate explicit approval; step 5 done |
 | 7 | Review and complete Task 7b | Review by the user of the full Task 7b diff; any commit needs its own explicit approval |
 | 8 | Start Task 8 | Separate explicit approval; steps 5 and 7 done |
+
+**Progress on 2026-11-07:** steps 1–7 are done; each was approved separately and Tasks 7, 6, 7a
+and 7b were committed in that order. Step 8 has not started. Nothing has been pushed.
 
 **Order of dependencies.** Task 6 is committed before Task 7a (step 3 before step 4), so both
 follow-up tasks start from a branch on which Task 6 is committed; in particular, Task 7b's change
@@ -1160,13 +1164,14 @@ after both Task 7a and Task 7b are completed and reviewed (steps 5 and 7 before 
 | O1 | `.gitattributes` `*.har` | **Approved** — recorded as D5 (§13.4) |
 | O2 | `frameworks` coverage thresholds | **Deferred to Phase 2** — recorded as D6 |
 | O3 | Temporary CI validation branch and draft PR (§11.4) | Approval requested at task 8, before anything is pushed |
-| O4 | The original Task 7 deliverables (§12, §13.4): ADRs 0007–0009, `test-core` README, `platform/README.md`, `README.md`, `docs/adr/README.md`, `CLAUDE.md`, `.gitattributes` D5, S2–S4 and R18 documentation | **Scope approved; scheduled as Task 7a, after the Task 6 commit and before Task 8. Not started, not complete; execution needs separate explicit approval (§15, step 4) and is complete only after review (step 5).** Task 7b and Task 8 depend on its completion and review. Scope, validation and review requirements in §15. They remain part of the §19 definition of done |
-| O5 | References to `PHASE-1-PLAN.md`, which no longer exists at that path, in `pom.xml` (8), `platform/pom.xml` (2), `platform/test-core/pom.xml`, `platform/test-reporting/pom.xml`, both `logback-test.xml` files, `build-config/checkstyle-suppressions.xml` and `.github/dependabot.yml`: **16 references** (14 comments and 2 Enforcer failure messages). This is the approved baseline, confirmed by the user; an earlier review package miscounted it as 17. All cited section numbers still exist | **Scope approved; scheduled as Task 7b, a separate, narrowly scoped change. Not started, not complete; execution needs separate explicit approval (§15, step 6) and is complete only after review (step 7).** Replacement path `docs/plans/phase-1.md`; exact baseline and validation in §15. Runs after the Task 6 commit (step 3), so the `.github/dependabot.yml` change is separate from Task 6, and only after Task 7a is completed and reviewed (step 5). Task 8 depends on its completion and review |
+| O4 | The original Task 7 deliverables (§12, §13.4): ADRs 0007–0009, `test-core` README, `platform/README.md`, `README.md`, `docs/adr/README.md`, `CLAUDE.md`, `.gitattributes` D5, S2–S4 and R18 documentation | **Done in Task 7a** (`c83768f`), after the Task 6 commit and before Task 8, as approved (§15, steps 4–5). Scope, validation and review requirements in §15. They remain part of the §19 definition of done |
+| O5 | References to `PHASE-1-PLAN.md`, which no longer exists at that path, in `pom.xml` (8), `platform/pom.xml` (2), `platform/test-core/pom.xml`, `platform/test-reporting/pom.xml`, both `logback-test.xml` files, `build-config/checkstyle-suppressions.xml` and `.github/dependabot.yml`: **16 references** (14 comments and 2 Enforcer failure messages). This is the approved baseline, confirmed by the user; an earlier review package miscounted it as 17. All cited section numbers still exist | **Done in Task 7b** (`3306dc1`), a separate, narrowly scoped change, as approved (§15, steps 6–7). All 16 references now point to `docs/plans/phase-1.md`; only this plan still names the old file, as its historical record. The `.github/dependabot.yml` change is separate from the Task 6 commit |
 | O6 | §8.6 marker and `clean` checks not evidenced in the Task 5 report | Run and record in Task 8 |
 
 Revision 4 introduces no new technical decision. The scopes of O4 and O5 were approved as
 follow-up work after the Task 7 review; neither is executed in Task 7, and neither may start
-without its own explicit approval. Revision 4 itself is in review again and not yet approved.
+without its own explicit approval. Revision 4 was approved and committed in Task 7; both
+follow-up tasks are now done (status on 2026-11-07).
 
 ---
 
@@ -1186,7 +1191,7 @@ without its own explicit approval. Revision 4 itself is in review again and not 
 - ADRs 0007–0009 and module READMEs are written; all links resolve.
 - Pull request reviewed and merged; "CI / Build and verify" set as a required check.
 
-**Status on 2026-11-06** (criteria above unchanged):
+**Status on 2026-11-07** (criteria above unchanged):
 
 | Criterion | Status |
 |---|---|
@@ -1197,6 +1202,6 @@ without its own explicit approval. Revision 4 itself is in review again and not 
 | No credentials; `secret.*` rejected in YAML | Done; also rejected as system properties (D7) |
 | CI uploads reports; coverage step only after a Maven failure | Implemented; GitHub scenario runs pending (Task 8) |
 | Allure results only in `target/allure-results`; `clean` removes stale results | Directory asserted by tests; `clean` evidence pending (O6) |
-| `.gitattributes` HAR change | Pending; scheduled in Task 7a (O4) |
-| ADRs 0007–0009 and module READMEs; links resolve | Pending; scheduled in Task 7a (O4); `test-reporting` README done |
+| `.gitattributes` HAR change | Done (Task 7a, §13.4) |
+| ADRs 0007–0009 and module READMEs; links resolve | Done (Task 7a; `test-reporting` README in Task 5) |
 | PR merged; required check set | Pending (Task 8) |
