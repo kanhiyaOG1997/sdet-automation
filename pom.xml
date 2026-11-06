@@ -46,7 +46,7 @@
     <!-- Populated by the JaCoCo agent (Task 3); Surefire reads it via @{argLine}. -->
     <argLine/>
 
-    <!-- Dependency versions (14-day release-age policy, PHASE-1-PLAN.md §4.2) -->
+    <!-- Dependency versions (14-day release-age policy, docs/plans/phase-1.md §4.2) -->
     <testng.version>7.12.0</testng.version>
     <assertj.version>3.27.7</assertj.version>
     <slf4j.version>2.0.20</slf4j.version>
@@ -66,7 +66,7 @@
     <maven-deploy-plugin.version>3.2.0</maven-deploy-plugin.version>
     <maven-site-plugin.version>3.22.0</maven-site-plugin.version>
 
-    <!-- Quality-gate versions (ADR-0006; PHASE-1-PLAN.md §4.4 and §6) -->
+    <!-- Quality-gate versions (ADR-0006; docs/plans/phase-1.md §4.4 and §6) -->
     <spotless-maven-plugin.version>3.10.4</spotless-maven-plugin.version>
     <google-java-format.version>1.36.1</google-java-format.version>
     <maven-checkstyle-plugin.version>3.6.0</maven-checkstyle-plugin.version>
@@ -158,7 +158,7 @@
             <trimStackTrace>false</trimStackTrace>
             <systemPropertyVariables>
               <!-- Allure defaults to a path relative to the working directory, outside
-                   target/ (PHASE-1-PLAN.md §8.6). An absolute path keeps results where
+                   target/ (docs/plans/phase-1.md §8.6). An absolute path keeps results where
                    `clean` removes them. -->
               <allure.results.directory>${project.build.directory}/allure-results</allure.results.directory>
             </systemPropertyVariables>
@@ -200,7 +200,7 @@
           <version>${maven-site-plugin.version}</version>
         </plugin>
 
-        <!-- Quality gates: one responsibility per tool (ADR-0006, PHASE-1-PLAN.md §6) -->
+        <!-- Quality gates: one responsibility per tool (ADR-0006, docs/plans/phase-1.md §6) -->
         <plugin>
           <!-- Sole owner of Java formatting. Fix locally with: ./mvnw spotless:apply -->
           <groupId>com.diffplug.spotless</groupId>
@@ -212,7 +212,7 @@
                 <version>${google-java-format.version}</version>
                 <style>GOOGLE</style>
                 <!-- Required: without reflow the formatter leaves long strings and text
-                     blocks that Checkstyle rejects (PHASE-1-PLAN.md §6.3). -->
+                     blocks that Checkstyle rejects (docs/plans/phase-1.md §6.3). -->
                 <reflowLongStrings>true</reflowLongStrings>
                 <formatJavadoc>true</formatJavadoc>
               </googleJavaFormat>
@@ -287,7 +287,7 @@
               <rules>
                 <requireJavaVersion>
                   <version>[21,22)</version>
-                  <message>This project builds only on JDK 21 (PHASE-1-PLAN.md, decision D2).</message>
+                  <message>This project builds only on JDK 21 (docs/plans/phase-1.md, decision D2).</message>
                 </requireJavaVersion>
                 <requireMavenVersion>
                   <version>[3.9.0,)</version>
@@ -298,7 +298,7 @@
                 </requirePluginVersions>
                 <dependencyConvergence/>
                 <!-- Needed on Maven 3.9.x, which only warns about duplicate dependency
-                     declarations; Maven 3.10+ already rejects them (PHASE-1-PLAN.md §4.5). -->
+                     declarations; Maven 3.10+ already rejects them (docs/plans/phase-1.md §4.5). -->
                 <banDuplicatePomDependencyVersions/>
                 <banDynamicVersions>
                   <!-- Exact allowlist of this reactor's own modules, which are SNAPSHOTs during
@@ -342,7 +342,7 @@
         </executions>
       </plugin>
 
-      <!-- Quality gates, all bound to `verify` (PHASE-1-PLAN.md §4.6). Declaration order is
+      <!-- Quality gates, all bound to `verify` (docs/plans/phase-1.md §4.6). Declaration order is
            execution order within the phase: Spotless, Checkstyle, SpotBugs, JaCoCo. -->
       <plugin>
         <groupId>com.diffplug.spotless</groupId>

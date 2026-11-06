@@ -1,4 +1,4 @@
-# Dependency updates (PHASE-1-PLAN.md §11.5). Weekly, grouped, and never for a release younger
+# Dependency updates (docs/plans/phase-1.md §11.5). Weekly, grouped, and never for a release younger
 # than 14 days, which automates the release-age policy in §4.2.
 version: 2
 updates:

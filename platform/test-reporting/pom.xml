@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
   Allure reporting for TestNG suites, with mandatory masking of sensitive data
-  (PHASE-1-PLAN.md §8). No versions here: every version comes from the root POM.
+  (docs/plans/phase-1.md §8). No versions here: every version comes from the root POM.
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"

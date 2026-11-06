@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Test-time logging only; libraries ship no logging configuration (PHASE-1-PLAN.md §9). -->
+<!-- Test-time logging only; libraries ship no logging configuration (docs/plans/phase-1.md §9). -->
 <configuration>
   <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
     <encoder>

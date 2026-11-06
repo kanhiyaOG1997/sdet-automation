@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Layer parent for shared platform libraries (ADR-0002, PHASE-1-PLAN.md §3.3).
+  Layer parent for shared platform libraries (ADR-0002, docs/plans/phase-1.md §3.3).
 
   Holds rules that apply only to platform production code. The JaCoCo coverage
   thresholds (decision D3) are added here in Task 3; modules are added in Tasks 4 and 5.
@@ -96,7 +96,7 @@
                       <files>
                         <file>${project.basedir}/src/test/java</file>
                       </files>
-                      <message>Platform modules with production code must have tests in src/test/java: without them the coverage gate (decision D3) is silently skipped (PHASE-1-PLAN.md, R18).</message>
+                      <message>Platform modules with production code must have tests in src/test/java: without them the coverage gate (decision D3) is silently skipped (docs/plans/phase-1.md, R18).</message>
                     </requireFilesExist>
                   </rules>
                 </configuration>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Typed, layered test configuration and safe secret handling (PHASE-1-PLAN.md §7).
+  Typed, layered test configuration and safe secret handling (docs/plans/phase-1.md §7).
   No versions here: every version comes from the root POM's dependencyManagement.
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"

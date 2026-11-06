@@ -5,7 +5,7 @@
 <!--
   Layout checks owned by google-java-format (Spotless), suppressed so formatting has exactly one
   authority (ADR-0006). Validated against Checkstyle 14.3.0's bundled google_checks.xml: every
-  check below fires on unformatted code and never on formatter output (PHASE-1-PLAN.md §6.2).
+  check below fires on unformatted code and never on formatter output (docs/plans/phase-1.md §6.2).
 
   Only layout checks belong here. Naming, Javadoc-content and coding rules stay active.
   Patterns match the fully qualified check class name and are anchored on "\." and "Check$",
