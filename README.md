@@ -119,12 +119,13 @@ sdet-automation/
 │
 ├── pom.xml                         # parent + aggregator, all versions          (Phase 1)
 ├── mvnw, mvnw.cmd, .mvn/wrapper/   # Maven Wrapper — the only build entry point
+├── build-config/                   # Checkstyle suppressions                      (Phase 1)
 ├── README.md, CLAUDE.md, LICENSE
 ├── .gitignore, .gitattributes, .editorconfig
 │
-├── platform/                       # shared, framework-agnostic libraries
-│   ├── test-core/                  # config, test context, logging, waits         (Phase 1)
-│   ├── test-reporting/             # Allure integration, TestNG listeners         (Phase 1)
+├── platform/                       # shared, framework-agnostic libraries (pom.xml = layer parent)
+│   ├── test-core/                  # layered configuration, secrets               (Phase 1)
+│   ├── test-reporting/             # Allure integration, masking, TestNG listeners (Phase 1)
 │   ├── test-data/                  # test data builders, fixtures                 (Phase 2)
 │   ├── db-client/                  # JDBC access for database assertions          (Phase 3)
 │   └── messaging-client/           # RabbitMQ and Kafka clients                   (Phase 5)
@@ -164,18 +165,25 @@ sdet-automation/
 │
 ├── docs/
 │   ├── adr/                        # Architecture Decision Records
+│   ├── plans/                      # phase implementation plans                   (Phase 1)
 │   ├── architecture/
 │   ├── test-strategy/
 │   └── system-design/
 │
 └── .github/
-    └── workflows/                  # GitHub Actions                               (Phase 1)
+    ├── workflows/ci.yml            # GitHub Actions build                         (Phase 1)
+    └── dependabot.yml              # dependency and action updates                (Phase 1)
 ```
 
 **Note:** This is the target architecture. A module is created only when it contains real
 code ([ADR-0002](docs/adr/0002-maven-multi-module-layout.md)); the phase shown is when it is
 introduced. Not every directory is a Maven module — infrastructure, documentation and
 performance assets use their own execution mechanisms.
+
+**Implemented today (Phase 1):** the root POM, the `platform` layer parent and its two modules
+[`platform/test-core`](platform/test-core/) and [`platform/test-reporting`](platform/test-reporting/),
+`build-config/`, the CI workflow and Dependabot. Every other module directory listed above
+contains at most a README.
 
 ---
 
@@ -243,9 +251,12 @@ Code quality tooling is described in [Code Quality and Engineering Standards](#8
 | Allure | Test reporting |
 | SLF4J + Logback | Logging |
 
-Dependencies and versions will be centrally managed through the root Maven POM and dependency management.
+Dependencies and versions are centrally managed in the root Maven POM; child POMs never declare
+versions, and the build enforces this ([ADR-0007](docs/adr/0007-build-and-quality-gates.md)).
 
-Tools will be introduced when their corresponding modules are implemented.
+Tools will be introduced when their corresponding modules are implemented. Phase 1 uses Java 21,
+Maven, TestNG, AssertJ, Jackson, SLF4J with Logback (tests only), Allure and GitHub Actions; the
+rest of this stack is planned.
 
 ---
 
@@ -326,10 +337,10 @@ this repository's parent POM and quality gates. See [`sut/`](sut/).
 | Tool | Requirement |
 |---|---|
 | Git | Installed |
-| JDK | Java 21 |
+| JDK | Java 21 (the build enforces `[21,22)`; CI uses Eclipse Temurin 21) |
 | IntelliJ IDEA | Recommended IDE |
-| Maven | Not required — use the bundled Maven Wrapper (`./mvnw`) |
-| Container runtime | OrbStack or any Docker-compatible runtime, required for integration tests |
+| Maven | Not required — use the bundled Maven Wrapper (`./mvnw`, Maven 3.10.0) |
+| Container runtime | OrbStack or any Docker-compatible runtime, required for integration tests (from Phase 2; not needed in Phase 1) |
 | GitHub | Repository access |
 
 ### Clone the repository
@@ -363,28 +374,41 @@ Always build with the wrapper, never a global `mvn`:
 
 ### Build the project
 
-Once Phase 1 Maven modules are implemented:
-
 ```bash
 ./mvnw clean verify
 ```
 
+This is the complete gate and the same command CI runs: Enforcer rules, compilation (warnings
+are errors), unit tests, then Spotless, Checkstyle, SpotBugs and JaCoCo. Use `clean` whenever
+an Allure report will be generated: Allure never deletes old results.
+
 ### Execute a specific module
 
-After the relevant module has been created, build it together with the modules it depends on:
+Build a module together with the modules it depends on:
 
 ```bash
-./mvnw -pl frameworks/api-framework -am verify
+./mvnw -pl platform/test-core verify
+./mvnw -pl platform/test-reporting -am verify
 ```
 
 ### Execute tests
 
 ```bash
-./mvnw test      # unit tests only — fast, no containers needed
-./mvnw verify    # unit tests plus integration test suites
+./mvnw test                  # compile and run unit tests, without the quality gates
+./mvnw spotless:apply        # fix formatting before verify
 ```
 
-Additional module-specific commands and execution profiles will be documented as the frameworks become available.
+Phase 1 has unit tests only. Integration suites (Failsafe, Testcontainers) arrive in Phase 2.
+Additional module-specific commands and execution profiles will be documented as the frameworks
+become available.
+
+### Configuration and secrets
+
+Test configuration is layered YAML plus environment variables and system properties
+([`platform/test-core`](platform/test-core/README.md)). Secrets come **only** from `SECRET_*`
+environment variables, never from YAML or `-Dsecret.*`. A secret passed with `-D` is copied
+into Surefire XML reports and must be treated as exposed and rotated
+([ADR-0008](docs/adr/0008-test-configuration-and-secrets.md)).
 
 ---
 
@@ -439,10 +463,15 @@ non-overlapping responsibility and is enforced by the Maven build
 
 | Tool | Responsibility |
 |---|---|
-| Spotless + google-java-format | Sole owner of Java formatting; fix with `./mvnw spotless:apply` |
-| Checkstyle (Google conventions) | Non-formatting rules only: naming, Javadoc, imports, complexity |
-| SpotBugs | Static bug analysis |
-| JaCoCo | Code coverage, with minimum thresholds on `platform` and `frameworks` modules |
+| Spotless 3.10.4 + google-java-format 1.36.1 | Sole owner of Java formatting; fix with `./mvnw spotless:apply` |
+| Checkstyle 14.3.0 (Google conventions) | Non-formatting rules only: naming, Javadoc, imports, coding rules. Formatting checks are suppressed in [`build-config/checkstyle-suppressions.xml`](build-config/checkstyle-suppressions.xml) |
+| SpotBugs 4.10.5 | Static bug analysis (effort `Max`, threshold `Medium`) |
+| JaCoCo 0.8.15 | Coverage on every module; **line ≥ 80% and branch ≥ 70%** enforced on `platform` production code. Thresholds for `frameworks` are decided in Phase 2 |
+
+All gates run in `verify`; the Maven Enforcer rules (Java 21, pinned plugins, no dynamic or
+child-POM versions, dependency convergence) run in `validate`
+([ADR-0007](docs/adr/0007-build-and-quality-gates.md)). Every version follows a 14-day
+release-age policy.
 
 IDE plugins such as SonarQube for IDE may be used for development-time feedback, but they are
 not build gates.
@@ -477,6 +506,27 @@ not build gates.
 ## 9. CI/CD and Execution Strategy
 
 Automation will progressively integrate with GitHub Actions and Jenkins.
+
+### Current pipeline (Phase 1)
+
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs on pull requests to `main`, pushes
+to `main` and manual dispatch:
+
+- One job, **"Build and verify"**, on `ubuntu-24.04` with Temurin 21 and a 15-minute timeout,
+  running `./mvnw --batch-mode --no-transfer-progress --fail-at-end verify`.
+- Read-only token (`contents: read`), actions pinned by full commit SHA, and
+  `persist-credentials: false`. Uses `pull_request`, not `pull_request_target`.
+- If the Maven step itself fails, a follow-up step builds the JaCoCo report from the recorded
+  coverage data.
+- Unless the run is cancelled, Surefire, JaCoCo, Allure-results, Checkstyle and SpotBugs reports
+  are uploaded as the `build-reports` artifact (14 days).
+- A newer push cancels a running PR build. On `main`, a running build is never cancelled, and
+  GitHub keeps at most one pending run per branch.
+
+[`.github/dependabot.yml`](.github/dependabot.yml) proposes weekly, grouped updates for Maven
+and GitHub Actions, with a 14-day cooldown. google-java-format is not expected to be covered,
+because it is referenced only inside the Spotless configuration. It is maintained manually
+until a Dependabot run confirms this ([ADR-0007](docs/adr/0007-build-and-quality-gates.md)).
 
 ### Planned pipeline
 
@@ -547,6 +597,20 @@ Allure will be the primary test reporting solution.
 
 Sensitive information such as access tokens, passwords and personal data must be redacted from logs and reports.
 
+**Implemented in Phase 1** ([`platform/test-reporting`](platform/test-reporting/README.md),
+[ADR-0009](docs/adr/0009-reporting-allure-and-masking.md)):
+
+- Allure 3.0.0 for TestNG, with raw results in `target/allure-results`. Report generation and
+  publishing come in Phase 2.
+- Configured secrets and values of sensitive keys are masked before content is written. This
+  covers attachments made through `ReportAttachments`, environment information, log lines, test
+  results, containers and run-level errors.
+- **Not masked:** attachment *content* written directly through Allure (`Allure.attachment(...)`,
+  Allure's HTTP filters, global attachments; only their names are masked), images, encoded
+  secrets, and Surefire XML reports.
+- Never pass secrets as data-provider parameters: Allure's `historyId` is derived from them.
+- If listener order would let Allure write unmasked errors, the run fails instead.
+
 ---
 
 ## 11. Security Guidelines
@@ -556,8 +620,11 @@ Security is a core engineering requirement.
 ### Credential management
 
 - Never commit credentials or access tokens.
-- Use environment variables for local configuration.
-- Use GitHub Actions Secrets for CI/CD credentials.
+- Use environment variables for local configuration. Test secrets are read only from `SECRET_*`
+  environment variables; YAML files and `-Dsecret.*` system properties are rejected
+  ([ADR-0008](docs/adr/0008-test-configuration-and-secrets.md)).
+- Use GitHub Actions Secrets for CI/CD credentials, mapped through the workflow's `env:` block,
+  never on the Maven command line.
 - Keep `.env` files out of Git.
 - Maintain `.env.example` with placeholders only.
 - Never commit private SSH keys or certificates.
@@ -666,6 +733,12 @@ New ADRs copy [`0000-template.md`](docs/adr/0000-template.md), which has these s
 | [0004](docs/adr/0004-own-system-under-test.md) | Build our own SUT — SDET Testing Playground |
 | [0005](docs/adr/0005-container-runtime-orbstack-testcontainers.md) | OrbStack locally, Testcontainers for integration tests |
 | [0006](docs/adr/0006-code-quality-toolchain.md) | Code quality toolchain without duplicate formatting rules |
+| [0007](docs/adr/0007-build-and-quality-gates.md) | Enforce build rules and quality gates in layered parent POMs |
+| [0008](docs/adr/0008-test-configuration-and-secrets.md) | Layered test configuration with environment-only secrets |
+| [0009](docs/adr/0009-reporting-allure-and-masking.md) | Allure 3 reporting with masking at write time |
+
+Implementation plans with their task history live in [`docs/plans/`](docs/plans/), for example
+the [Phase 1 plan](docs/plans/phase-1.md).
 
 ---
 
@@ -675,8 +748,8 @@ The repository will be developed incrementally.
 
 | Phase | Scope | Status |
 |---|---|---|
-| Phase 0 | Repository foundation, Git hygiene, documentation and Maven Wrapper | In progress |
-| Phase 1 | Maven architecture, quality gates, shared platform modules and CI | Planned |
+| Phase 0 | Repository foundation, Git hygiene, documentation and Maven Wrapper | Done |
+| Phase 1 | Maven architecture, quality gates, shared platform modules and CI | In progress ([plan](docs/plans/phase-1.md)) |
 | Phase 2 | SDET Testing Playground v1: REST APIs, PostgreSQL and API framework | Planned |
 | Phase 3 | Database automation and data integrity testing | Planned |
 | Phase 4 | Selenium and Playwright automation frameworks | Planned |

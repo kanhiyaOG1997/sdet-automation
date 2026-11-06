@@ -22,4 +22,3 @@ mvnw text eol=lf
 *.apk binary
 *.ipa binary
 *.zip binary
-*.har binary
