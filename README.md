@@ -756,7 +756,7 @@ The repository will be developed incrementally.
 | Phase | Scope | Status |
 |---|---|---|
 | Phase 0 | Repository foundation, Git hygiene, documentation and Maven Wrapper | Done |
-| Phase 1 | Maven architecture, quality gates, shared platform modules and CI | In progress ([plan](docs/plans/phase-1.md)) |
+| Phase 1 | Maven architecture, quality gates, shared platform modules and CI | Done ([plan](docs/plans/phase-1.md)) |
 | Phase 2 | SDET Testing Playground v1: REST APIs, PostgreSQL and API framework | Planned |
 | Phase 3 | Database automation and data integrity testing | Planned |
 | Phase 4 | Selenium and Playwright automation frameworks | Planned |
