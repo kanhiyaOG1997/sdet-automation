@@ -522,11 +522,16 @@ to `main` and manual dispatch:
   are uploaded as the `build-reports` artifact (14 days).
 - A newer push cancels a running PR build. On `main`, a running build is never cancelled, and
   GitHub keeps at most one pending run per branch.
+- `main` is protected by the repository ruleset `Protect main`: every change needs a pull
+  request, and the required status check `Build and verify` (shown in pull requests as
+  "CI / Build and verify") must pass on a branch that is up to date with `main`. Force pushes
+  and deleting `main` are blocked.
 
 [`.github/dependabot.yml`](.github/dependabot.yml) proposes weekly, grouped updates for Maven
 and GitHub Actions, with a 14-day cooldown. google-java-format is not expected to be covered,
-because it is referenced only inside the Spotless configuration. It is maintained manually
-until a Dependabot run confirms this ([ADR-0007](docs/adr/0007-build-and-quality-gates.md)).
+because it is referenced only inside the Spotless configuration. The first Dependabot run
+proposed no google-java-format update, which supports this but does not conclusively confirm
+it, so it is still maintained manually ([ADR-0007](docs/adr/0007-build-and-quality-gates.md)).
 
 ### Planned pipeline
 

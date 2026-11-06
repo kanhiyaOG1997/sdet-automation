@@ -1,8 +1,11 @@
 # Phase 1 Implementation Plan — Build Backbone
 
-- **Status:** Revision 4 — reconciled with the implementation and approved. Status updated
-  2026-11-07: Tasks 1–7b are completed and committed on `feature/phase-1-build-backbone`; nothing
-  has been pushed. Task 8 has not started and awaits explicit approval. Every remaining step,
+- **Status:** Revision 4 — reconciled with the implementation and approved. Closeout status
+  2026-11-07: Tasks 1–8 are completed. Phase 1 was merged to `main` through PR #2 (merge commit
+  `e0976ab`); the ruleset `Protect main` requires the `Build and verify` check; O3 Scenario A was
+  validated on PR #3, which was closed without merging; Scenario B was not executed and is an
+  accepted residual risk (R14, R22). **Phase 1 is not yet formally closed:** closure is pending the
+  merge of the closeout documentation PR and a final verification. Every remaining step,
   including each commit, push and pull request, needs its own explicit approval (§15)
 - **Date:** 2026-11-06 (versions and SHAs verified 2026-11-05; re-checked against the 2026-11-06
   cutoff — no selection changes; action SHAs re-verified 2026-11-06 in Task 6)
@@ -34,6 +37,7 @@ need a new decision are listed as open items in §18.
 | Status | Task status and actual commits (§15); open items O4–O6 (§18); status against the definition of done (§19) |
 | Status update (2026-11-07) | Tasks 6, 7, 7a and 7b recorded as completed and committed, with their commits (§3.1, §11.2, §12, §13.4, §14, §15, §18, §19); Task 8 not started |
 | Follow-up | O4 and O5 scheduled as separate Tasks 7a and 7b, after the Task 7 and Task 6 commits and before Task 8, in that order (7b only after 7a is completed and reviewed), each needing its own approval (§15, §18); neither is executed in Task 7 |
+| Closeout update (2026-11-07) | Task 8 results recorded: local validation and O6 evidence (§8.6, §10); PR #2 merge and its process deviation (§15); required check `Build and verify` set through the ruleset `Protect main` (§11.3); O3 Scenario A results and Scenario B accepted as residual risk (§11.4, §16, R14, R22, O3); first Dependabot run (§11.5); definition-of-done status (§19). The rows above are kept as history. No technical decision, version or scope changes |
 
 ### Revision 3 changes
 
@@ -680,7 +684,9 @@ tooling).
 
 **Status.** The first row is asserted on every build by `ReportingWiringTest` (exact directory,
 no fallback directory). Evidence for the three marker and `clean` rows was not recorded in the
-Task 5 report; they are run and recorded in Task 8 (O6).
+Task 5 report; it was recorded in Task 8 step 1 on 2026-11-07 (O6): the marker was still present
+after `verify`, was gone after `clean verify` with only that run's results left, and `clean`
+removed `target/allure-results/` (all four commands exit 0).
 
 ---
 
@@ -698,8 +704,11 @@ Task 5 report; they are run and recorded in Task 8 (O6).
 
 ## 10. Build validation
 
-These checks were exercised during Tasks 2–6 and reported with each task. Task 8 repeats the
-complete set on the final branch and records the evidence.
+These checks were exercised during Tasks 2–6 and reported with each task. Task 8 step 1
+(2026-11-07) repeated the complete set on the final branch (`3da20fb`): every positive check and
+the exact CI command passed, and every negative control failed at its intended gate. The
+negative controls ran in disposable `git archive` copies instead of as reverted edits in the
+repository; the faults and expected failures are those in §10.2.
 
 ### 10.1 Positive validation
 
@@ -832,8 +841,14 @@ jobs:
 | `retention-days: 14` | Long enough to investigate; limits storage |
 | Secrets only through `env:` | **Mandatory for every workflow (D7, R21).** When a job needs a secret, it is mapped in the job's or step's `env:` block as `SECRET_*`, never passed on the Maven command line and never as `-Dsecret.*`: system properties appear in process listings and are copied into Surefire and Failsafe XML reports, which this workflow uploads. The Phase 1 workflow needs no secrets |
 
-**After the first green run:** add **"CI / Build and verify"** as a required status check in
-branch protection for `main`.
+**After the first green run:** add the job's check as a required status check for `main`.
+**Done (2026-11-06):** the repository ruleset `Protect main` (ID `26725062`, active, target: the
+default branch) requires the status check **`Build and verify`** from GitHub Actions. That is the
+exact check name GitHub reports (the job's `name:`); GitHub displays it in pull requests as
+"CI / Build and verify" (workflow / job). The ruleset also requires a pull request (0 approvals),
+requires branches to be up to date before merging, blocks force pushes and restricts deletion;
+linear history is not required. Its bypass list is empty, as confirmed by the repository owner in
+the GitHub UI (not readable through the unauthenticated API).
 
 ### 11.4 Workflow validation
 
@@ -868,7 +883,8 @@ system-wide.
 | Failure path on that export, with a deliberate failing test (export only) | `verify` exit 1; `--fail-at-end` let `test-core` finish; the failing module had no JaCoCo HTML until `--offline jacoco:report` (exit 0) produced it — R13 confirmed locally |
 | Full `./mvnw -B -ntp clean verify` in the repository | Exit 0; 117 tests; gates green |
 
-The `if:` conditions themselves are evaluated only by GitHub and remain to be proven in Task 8
+The `if:` conditions themselves are evaluated only by GitHub. They were proven on GitHub in
+Task 8 for the green and test-failure scenarios; the setup-failure scenario was not executed
 (below).
 
 **Behavioural validation of the conditional.** Docker and `act` are not available locally, and
@@ -885,6 +901,26 @@ The temporary validation PR uses a throwaway branch (`ci-validation/failure-path
 commit per scenario. It is opened as a draft, never merged, then closed and the branch deleted.
 Pushing it and opening it require your explicit approval at that time; the run links are
 reported as evidence.
+
+**Task 8 results** (2026-11-06, GitHub; the planned table above is kept unchanged):
+
+| Scenario | Run | Observed | Status |
+|---|---|---|---|
+| All green | PR #2: [42279950007](https://github.com/kanhiyaOG1997/sdet-automation/actions/runs/42279950007); push to `main`: [42279970970](https://github.com/kanhiyaOG1997/sdet-automation/actions/runs/42279970970); PR #3 after the probe was removed (`f97c3e9`): [42296537859](https://github.com/kanhiyaOG1997/sdet-automation/actions/runs/42296537859) | Build and verify success; coverage step **skipped**; upload ran; `build-reports` artifact with 14-day retention | **Completed** |
+| Test failure | PR #3, probe commit `b8383c8`: [42295149608](https://github.com/kanhiyaOG1997/sdet-automation/actions/runs/42295149608) | A single deliberate failing test (`CiFailurePathProbeTest`, `test-core`, validated locally first: 1 failure, 30 other tests passing). Build and verify **failure**; coverage step **ran** (success); upload ran (artifact 82,865 bytes); check `Build and verify` concluded failure | **Completed.** Not independently verified: that the failure artifact contains JaCoCo HTML (downloading artifacts requires authentication) |
+| JDK setup fails | — | Not executed | **Accepted residual risk** (R14, R22) |
+| Run cancelled | — | Not forced | Standard GitHub semantics, as planned |
+
+**Merge blocking** (PR #3): while the required check `Build and verify` was failing, GitHub
+blocked the merge. This is **confirmed by the repository owner in the GitHub UI**; it was not
+independently verified through the API (the unauthenticated API reported
+`mergeable_state: unstable`, so the API alone does not show the block).
+
+**Execution deviations from the plan above:** PR #3 was opened as a regular pull request, not a
+draft, because a draft is unmergeable for its own reason and would hide the check-based block.
+It had two commits, the probe (`b8383c8`) and its removal (`f97c3e9`), after which the branch
+had no file changes against `main`. PR #3 was closed without merging; the remote branch was
+deleted, and the local branch is kept as a reference.
 
 ### 11.5 `.github/dependabot.yml`
 
@@ -906,7 +942,7 @@ reported as evidence.
 
 | Item | Expected behaviour |
 |---|---|
-| google-java-format 1.36.1 | **Not expected to be updated:** its version is referenced inside the Spotless plugin's `<configuration>`, not declared as a Maven dependency or plugin dependency. Not yet confirmed: the first Dependabot run must explicitly check whether a google-java-format update is proposed. Maintained manually until verified (R1) |
+| google-java-format 1.36.1 | **Not expected to be updated:** its version is referenced inside the Spotless plugin's `<configuration>`, not declared as a Maven dependency or plugin dependency. Not yet confirmed: the first Dependabot run must explicitly check whether a google-java-format update is proposed. Maintained manually until verified (R1). **First run (2026-11-06):** both updates succeeded (Maven [42279981949](https://github.com/kanhiyaOG1997/sdet-automation/actions/runs/42279981949), GitHub Actions [42279982448](https://github.com/kanhiyaOG1997/sdet-automation/actions/runs/42279982448)) and opened no PRs. No google-java-format PR was proposed although 1.37.0 is past the cooldown, which supports this expectation; it is not conclusively confirmed (the Dependabot logs require authentication), so manual maintenance continues |
 | Checkstyle and SpotBugs engines | Declared as plugin dependencies; expected to be covered |
 | Jackson, SLF4J and Logback BOMs/artifacts | Not grouped: individual PRs |
 | `io.github.kanhiyaog1997.sdet:*` | Not published, so no update PRs are expected |
@@ -1049,7 +1085,7 @@ automated check is evaluated in Phase 4, when HAR fixtures are first introduced.
 | 7 | Done. **Redefined for this revision** as "finalize and relocate the Phase 1 plan"; the original Task 7 deliverables above moved to Task 7a (O4) | `9868919` docs(plans): add Phase 1 implementation plan |
 | 7a | Done (O4) — the original Task 7 documentation deliverables; committed under an approved, different message | `c83768f` docs: add Phase 1 architecture and usage documentation |
 | 7b | Done (O5) — the 16 references to the old plan path updated | `3306dc1` docs: update Phase 1 plan references |
-| 8 | **Not started; awaiting explicit approval** (step 8 below). Its prerequisites below are met | — |
+| 8 | **Done** (2026-11-07). Step 1: full local validation and O6 evidence passed (§8.6, §10). The branch was pushed and merged through PR #2. Required check `Build and verify` set through the ruleset `Protect main` (§11.3). O3 Scenario A completed on PR #3, closed without merging (§11.4). Scenario B not executed: accepted residual risk (R14, R22). **Process deviation:** PR #2 was merged 12 seconds after it was opened, before its CI run completed (both runs later passed), and it used GitHub's default title and an empty description instead of the approved draft. `Protect main` now requires `Build and verify` to pass before merging, which prevents a repeat | `e0976ab` Merge pull request #2 (the O3 commits were never merged) |
 
 Task 5's exit criterion "Allure directory and `clean` checks pass (§8.6)" is partly evidenced:
 see the §8.6 status note and O6.
@@ -1070,7 +1106,8 @@ pull request or merge unless that approval says so explicitly.
 | 8 | Start Task 8 | Separate explicit approval; steps 5 and 7 done |
 
 **Progress on 2026-11-07:** steps 1–7 are done; each was approved separately and Tasks 7, 6, 7a
-and 7b were committed in that order. Step 8 has not started. Nothing has been pushed.
+and 7b were committed in that order. Step 8 (Task 8) is done: each push, pull request and O3
+operation was approved separately, and the branch was merged to `main` through PR #2.
 
 **Order of dependencies.** Task 6 is committed before Task 7a (step 3 before step 4), so both
 follow-up tasks start from a branch on which Task 6 is committed; in particular, Task 7b's change
@@ -1124,7 +1161,8 @@ after both Task 7a and Task 7b are completed and reviewed (steps 5 and 7 before 
 6. Any deviation from this plan discovered during implementation is reported and approved
    before it is applied.
 7. The temporary CI validation branch and draft PR (§11.4) are created only with explicit
-   approval, never merged, and removed afterwards.
+   approval, never merged, and removed afterwards. Executed as a regular, unmerged PR (#3), for
+   the reason given in §11.4; the remote branch was deleted and the local branch kept.
 
 ---
 
@@ -1145,15 +1183,15 @@ after both Task 7a and Task 7b are completed and reviewed (steps 5 and 7 before 
 | R11 | SHA pins drift out of date | Low | Missing fixes | Dependabot `github-actions` ecosystem |
 | R12 | Selected versions superseded quickly | Certain | Minor drift | Dependabot with 14-day cooldown; grouped weekly PRs |
 | R13 | `jacoco:report` on failure runs `--offline` | Low | Step fails if a plugin was not yet downloaded | The step now runs only when the Maven step itself ran and failed, so plugins were already resolved; a failure of this step never hides the original failure. Validated locally in Task 6 after a deliberate test failure (§11.4) |
-| R14 | actionlint does not detect an invalid `outcome` literal or an `id` on the wrong step | Low | Coverage step silently never runs | Review plus behavioural validation on GitHub (§11.4) |
-| R15 | Local `./mvnw verify` without `clean` accumulates Allure results | Medium | Stale results in local reports | Documented `./mvnw clean verify`; CI always starts clean; the §8.6 marker check is recorded in Task 8 (O6) |
+| R14 | actionlint does not detect an invalid `outcome` literal or an `id` on the wrong step | Low | Coverage step silently never runs | Review plus behavioural validation on GitHub (§11.4). **Status (Task 8):** the success and test-failure paths are proven on GitHub (PR #2, PR #3): the coverage step was skipped on success and ran after a test failure. The setup-failure path (Scenario B) was not executed and is an **accepted residual risk** |
+| R15 | Local `./mvnw verify` without `clean` accumulates Allure results | Medium | Stale results in local reports | Documented `./mvnw clean verify`; CI always starts clean; the §8.6 marker check was recorded in Task 8 step 1 (O6, done) |
 | R16 | A future change drops the explicit `allure.results.directory` | Low | Results escape `target/` and are never cleaned | Wiring test asserts the exact directory and the absence of the fallback directory (§8.5) |
 | R17 | **Known issue (accepted for Phase 1; revisit in Phase 2).** The Checkstyle plugin's dependency tree contains old `javax` artifacts whose parent POM `net.java:jvnet-parent:5` declares the retired repository `jvnet-nexus-releases` (`https://maven.java.net/...`). Maven's resolver probes it for `/.meta/prefixes.txt` and logs a `[WARNING]` (certificate failure) | Certain | Log noise; an outbound request to a dead domain. All artifacts still resolve from Maven Central; the build passes | No resolver settings changed in Phase 1 (decision, Task 3). Phase 2 evaluates a clean fix (for example a repository filter or mirror) |
 | R18 | **Gap found in Task 3 — accepted temporarily (option a), fixed in Task 4 (option b).** A platform module with production code but **no tests** passes the coverage gate: no tests means no `jacoco.exec`, and `jacoco:check` skips instead of failing. `-Dsurefire.failIfNoTests=true` does **not** close it (Surefire returns early when `src/test` is absent) | Low (every planned platform module has tests) | D3 could be bypassed silently | **Implemented in Task 4:** `platform/pom.xml` profile `require-tests-for-production-code` (activated by `${basedir}/src/main/java`) runs Enforcer `requireFilesExist` on `src/test/java` in `validate`. Proven: a module with production code and no `src/test/java` fails; `test-core` passes; `platform-parent` is unaffected. **Residual limitation:** an *empty* `src/test/java` satisfies the guard (Git does not track empty directories, so this can only happen locally); code review remains the safeguard for test quality |
 | R19 | **Found and fixed in Task 5.** Allure writes run-level errors (`*-globals.json`) without any listener callback; `AllureTestNg` does so on configuration-method and data-provider failures, copying the exception message and stack trace, so a secret in such a failure reached the results directory unmasked | — | — | **Fixed (Task 5 decision A; D9):** `MaskingResultsWriter` wraps Allure's `FileSystemResultsWriter` and masks every global error and global attachment name before writing, failing closed. `AllureLifecycleInstaller` installs it through the public `Allure.setLifecycle` API before TestNG constructs `AllureTestNg` (ServiceLoader order), and aborts the run if that order is violated. Proven by unit, recording-writer and end-to-end tests with real configuration and data-provider failures, a negative control without the installer and a wrong-order control |
 | R20 | **Accepted with documentation (Task 5 decision B; D10).** `banDynamicVersions` skips an allowlisted artifact entirely, whatever its version, so a range on `test-core` or `test-reporting` (for example `[0.1.0-SNAPSHOT,)`) passes that rule. Writing the ignore as `groupId:artifactId:${project.version}` does not help: the range resolves to that same version | Low | A range on an internal module would not be caught by that rule | Enforcer `evaluateBeanshell` rule: no child POM may declare a dependency version at all (`<dependencies>`, `<dependencyManagement>`, profiles, plugin dependencies); the root `dependencyManagement` pins internal modules to `${project.version}`. Proven: explicit `${project.version}`, a range on `test-core`, an external version and a child `dependencyManagement` entry each fail; a version inside an XML comment passes. The root POM itself remains protected by review |
 | R21 | **Accepted with safeguards (Task 5 decision C).** Surefire and Failsafe copy every system property into their XML reports before any test runs. A secret passed as `-Dsecret.*` is therefore recorded in that run's XML even though `ConfigLoader` rejects it and the run fails | Low | Secret exposed in a local or uploaded report | Secrets are accepted only from `SECRET_*` environment variables (D7); the README states that a secret passed with `-D` must be treated as exposed and rotated; every CI workflow maps secrets through `env:` only (§11.3) |
-| R22 | **Found in Task 6.** Static validation cannot prove CI behaviour: actionlint misses a wrong `outcome` literal (R14), the Dependabot schema accepts a group without `patterns`, and Dependabot's real coverage (google-java-format, Maven Wrapper) is known only after it runs on GitHub | Medium | A misconfiguration is discovered late | Review; behavioural CI runs in Task 8 (§11.4); first Dependabot run checked against §11.5, including explicitly whether a google-java-format update is proposed (R1) |
+| R22 | **Found in Task 6.** Static validation cannot prove CI behaviour: actionlint misses a wrong `outcome` literal (R14), the Dependabot schema accepts a group without `patterns`, and Dependabot's real coverage (google-java-format, Maven Wrapper) is known only after it runs on GitHub | Medium | A misconfiguration is discovered late | Review; behavioural CI runs in Task 8 (§11.4); first Dependabot run checked against §11.5, including explicitly whether a google-java-format update is proposed (R1). **Status (Task 8):** green and test-failure CI behaviour proven on GitHub; Scenario B (setup failure) not executed, an **accepted residual risk**; first Dependabot run checked (§11.5): no google-java-format PR, supporting but not conclusively confirming R1; Maven Wrapper coverage still unverified |
 
 ---
 
@@ -1163,10 +1201,10 @@ after both Task 7a and Task 7b are completed and reviewed (steps 5 and 7 before 
 |---|---|---|
 | O1 | `.gitattributes` `*.har` | **Approved** — recorded as D5 (§13.4) |
 | O2 | `frameworks` coverage thresholds | **Deferred to Phase 2** — recorded as D6 |
-| O3 | Temporary CI validation branch and draft PR (§11.4) | Approval requested at task 8, before anything is pushed |
+| O3 | Temporary CI validation branch and draft PR (§11.4) | **Scenario A done** in Task 8: PR #3 (regular, not draft), runs 42295149608 (failure) and 42296537859 (green); merge blocking confirmed by the repository owner in the GitHub UI; closed without merging. **Scenario B not executed: accepted residual risk** (R14, R22) |
 | O4 | The original Task 7 deliverables (§12, §13.4): ADRs 0007–0009, `test-core` README, `platform/README.md`, `README.md`, `docs/adr/README.md`, `CLAUDE.md`, `.gitattributes` D5, S2–S4 and R18 documentation | **Done in Task 7a** (`c83768f`), after the Task 6 commit and before Task 8, as approved (§15, steps 4–5). Scope, validation and review requirements in §15. They remain part of the §19 definition of done |
 | O5 | References to `PHASE-1-PLAN.md`, which no longer exists at that path, in `pom.xml` (8), `platform/pom.xml` (2), `platform/test-core/pom.xml`, `platform/test-reporting/pom.xml`, both `logback-test.xml` files, `build-config/checkstyle-suppressions.xml` and `.github/dependabot.yml`: **16 references** (14 comments and 2 Enforcer failure messages). This is the approved baseline, confirmed by the user; an earlier review package miscounted it as 17. All cited section numbers still exist | **Done in Task 7b** (`3306dc1`), a separate, narrowly scoped change, as approved (§15, steps 6–7). All 16 references now point to `docs/plans/phase-1.md`; only this plan still names the old file, as its historical record. The `.github/dependabot.yml` change is separate from the Task 6 commit |
-| O6 | §8.6 marker and `clean` checks not evidenced in the Task 5 report | Run and record in Task 8 |
+| O6 | §8.6 marker and `clean` checks not evidenced in the Task 5 report | **Done** in Task 8 step 1 (2026-11-07); results in §8.6 |
 
 Revision 4 introduces no new technical decision. The scopes of O4 and O5 were approved as
 follow-up work after the Task 7 review; neither is executed in Task 7, and neither may start
@@ -1189,19 +1227,24 @@ follow-up tasks are now done (status on 2026-11-07).
   (§8.6).
 - `.gitattributes` treats HAR files as diffable text (§13.4).
 - ADRs 0007–0009 and module READMEs are written; all links resolve.
-- Pull request reviewed and merged; "CI / Build and verify" set as a required check.
+- Pull request reviewed and merged; `Build and verify` (displayed by GitHub as
+  "CI / Build and verify") set as a required check.
 
-**Status on 2026-11-07** (criteria above unchanged):
+**Status on 2026-11-07** (closeout; criteria above unchanged except for the exact check name):
 
 | Criterion | Status |
 |---|---|
-| `./mvnw -B verify` locally / in GitHub Actions | Locally green; GitHub pending (Task 8) |
-| Each platform module builds independently | Exercised with `-pl … -am` during Tasks 4–5; recorded again in Task 8 |
+| `./mvnw -B verify` locally / in GitHub Actions | Done: locally green (Task 8 step 1); GitHub runs 42279950007 and 42279970970 green |
+| Each platform module builds independently | Done: exercised with `-pl … -am` during Tasks 4–5 and recorded again in Task 8 step 1 |
 | Four gates enforced, proven to fail; no formatter/Checkstyle conflict | Done (Task 3) |
 | D3 thresholds met with behavioural tests | Done: `test-core` 98.3% lines / 92.5% branches; `test-reporting` 96.1% / 95.3% |
 | No credentials; `secret.*` rejected in YAML | Done; also rejected as system properties (D7) |
-| CI uploads reports; coverage step only after a Maven failure | Implemented; GitHub scenario runs pending (Task 8) |
-| Allure results only in `target/allure-results`; `clean` removes stale results | Directory asserted by tests; `clean` evidence pending (O6) |
+| CI uploads reports; coverage step only after a Maven failure | Done for success and test failure (§11.4: reports uploaded in both; coverage step skipped on success, ran after the test failure). Not independently verified: JaCoCo HTML inside the failure artifact. Setup-failure path: accepted residual risk (R14, R22) |
+| Allure results only in `target/allure-results`; `clean` removes stale results | Done: directory asserted by tests; `clean` evidence recorded (O6, §8.6) |
 | `.gitattributes` HAR change | Done (Task 7a, §13.4) |
 | ADRs 0007–0009 and module READMEs; links resolve | Done (Task 7a; `test-reporting` README in Task 5) |
-| PR merged; required check set | Pending (Task 8) |
+| PR merged; required check set | Done: PR #2 merged (`e0976ab`), with the process deviation recorded in §15 (merged before CI completed); `Protect main` requires `Build and verify` (§11.3) |
+
+**Phase 1 closure:** every criterion above is met or has an accepted residual risk. Phase 1 is
+not yet formally closed: closure is pending the merge of the closeout documentation PR and a
+final verification.
