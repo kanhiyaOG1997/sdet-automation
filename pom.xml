@@ -51,7 +51,7 @@
     <assertj.version>3.27.7</assertj.version>
     <slf4j.version>2.0.20</slf4j.version>
     <logback.version>1.6.5</logback.version>
-    <jackson.version>2.22.4</jackson.version>
+    <jackson.version>2.23.0</jackson.version>
     <allure.version>3.0.0</allure.version>
 
     <!-- Plugin versions -->
